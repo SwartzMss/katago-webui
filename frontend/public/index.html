@@ -64,6 +64,7 @@
     let heartbeatTimer = null;
     let stones = []; // {x:0..18, y:0..18, color:'black'|'white'}
     let playerColor = 'black';
+    let isPlayingRequest = false;
 
     function log(msg){
       const t = new Date().toLocaleTimeString();
@@ -144,6 +145,10 @@
       return {x, y};
     }
 
+    function hasStone(x, y){
+      return stones.some(s => s.x === x && s.y === y);
+    }
+
     async function newGame(){
       const level = document.getElementById('level').value;
       playerColor = document.getElementById('playerColor').value;
@@ -193,25 +198,57 @@
 
     board.addEventListener('click', async (e)=>{
       if(!gameId){ alert('请先新开对局'); return; }
+      if(isPlayingRequest){ return; } // 并发点击保护
       const rect = board.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const mv = coordToMove(x,y);
       if(!mv) return;
-      log(`你落子: ${mv}`);
-      // 先在本地渲染你的棋子
+
       const coord = moveToCoord(mv);
-      if(coord) stones.push({x:coord.x, y:coord.y, color: playerColor});
+      if(!coord) return;
+      if(hasStone(coord.x, coord.y)){
+        log(`该点已有棋子: ${mv}`);
+        return;
+      }
+
+      log(`你落子: ${mv}`);
+      // 先在本地渲染你的棋子（乐观更新）
+      stones.push({x:coord.x, y:coord.y, color: playerColor});
       drawBoard();
-      const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
-      if(res.status === 410){ alert('对局已过期'); return; }
-      const j = await res.json();
-      log(`AI 应手: ${j.engineMove}`);
-      const ai = moveToCoord(j.engineMove);
-      const aiColor = (playerColor === 'black') ? 'white' : 'black';
-      if(ai) stones.push({x:ai.x, y:ai.y, color: aiColor});
-      drawBoard();
-      updateStatus();
+
+      isPlayingRequest = true;
+      try{
+        const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
+        if(res.status === 410){
+          alert('对局已过期');
+          // 回滚你刚才那手
+          stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
+          drawBoard();
+          return;
+        }
+        if(!res.ok){
+          log('落子失败');
+          // 回滚
+          stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
+          drawBoard();
+          return;
+        }
+        const j = await res.json();
+        log(`AI 应手: ${j.engineMove}`);
+        const ai = moveToCoord(j.engineMove);
+        const aiColor = (playerColor === 'black') ? 'white' : 'black';
+        if(ai && !hasStone(ai.x, ai.y)) stones.push({x:ai.x, y:ai.y, color: aiColor});
+        drawBoard();
+        updateStatus();
+      }catch(err){
+        log('网络错误：' + err);
+        // 回滚
+        stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
+        drawBoard();
+      }finally{
+        isPlayingRequest = false;
+      }
     });
 
     document.getElementById('newGame').onclick = newGame;
