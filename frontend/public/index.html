@@ -62,6 +62,8 @@
 
     let gameId = null;
     let heartbeatTimer = null;
+    let stones = []; // {x:0..18, y:0..18, color:'black'|'white'}
+    let playerColor = 'black';
 
     function log(msg){
       const t = new Date().toLocaleTimeString();
@@ -79,9 +81,47 @@
         ctx.beginPath(); ctx.moveTo(32, x); ctx.lineTo(608, x); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(x, 32); ctx.lineTo(x, 608); ctx.stroke();
       }
+      drawStarPoints();
+      drawStones();
     }
 
     drawBoard();
+
+    function drawStarPoints(){
+      // 标准 19 路棋盘九个星位
+      const pts = [3,9,15];
+      ctx.fillStyle = '#333';
+      for(const i of pts){
+        for(const j of pts){
+          const cx = 32 + i*32;
+          const cy = 32 + j*32;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 3, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function drawStones(){
+      for(const s of stones){
+        const cx = 32 + s.x*32;
+        const cy = 32 + s.y*32;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 14, 0, Math.PI*2);
+        const grad = ctx.createRadialGradient(cx-6, cy-6, 2, cx, cy, 16);
+        if(s.color === 'black'){
+          grad.addColorStop(0, '#666');
+          grad.addColorStop(1, '#111');
+        }else{
+          grad.addColorStop(0, '#fff');
+          grad.addColorStop(1, '#ddd');
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#00000022';
+        ctx.stroke();
+      }
+    }
 
     function updateStatus(){
       fetch('/api/engine/status')
@@ -90,9 +130,23 @@
         .catch(()=>{ statusEl.textContent = '状态: 不可用'; });
     }
 
+    function moveToCoord(mv){
+      // 将 'Q16' → {x:colIndex(0..18), y:rowIndex(0..18)}，(0,0) 为左上角
+      if(!mv || mv === 'pass' || mv === 'resign') return null;
+      const letters = 'ABCDEFGHJKLMNOPQRST';
+      const colChar = mv[0].toUpperCase();
+      const col = letters.indexOf(colChar);
+      const rowNum = parseInt(mv.slice(1), 10);
+      if(col < 0 || isNaN(rowNum)) return null;
+      const y = 19 - rowNum; // 屏幕 y 向下
+      const x = col;
+      if(x<0||x>18||y<0||y>18) return null;
+      return {x, y};
+    }
+
     async function newGame(){
       const level = document.getElementById('level').value;
-      const playerColor = document.getElementById('playerColor').value;
+      playerColor = document.getElementById('playerColor').value;
       const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
       const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
       if(res.status === 429){
@@ -104,12 +158,17 @@
       const j = await res.json();
       gameId = j.gameId;
       log(`新开对局: ${gameId}`);
+      stones = [];
       if(j.engineMove){
         log(`AI 首手: ${j.engineMove}`);
+        const coord = moveToCoord(j.engineMove);
+        const aiColor = (playerColor === 'white') ? 'black' : 'white';
+        if(coord) stones.push({x:coord.x, y:coord.y, color: aiColor});
       }
       document.getElementById('resign').disabled = false;
       startHeartbeat();
       updateStatus();
+      drawBoard();
     }
 
     function startHeartbeat(){
@@ -140,10 +199,18 @@
       const mv = coordToMove(x,y);
       if(!mv) return;
       log(`你落子: ${mv}`);
+      // 先在本地渲染你的棋子
+      const coord = moveToCoord(mv);
+      if(coord) stones.push({x:coord.x, y:coord.y, color: playerColor});
+      drawBoard();
       const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
       if(res.status === 410){ alert('对局已过期'); return; }
       const j = await res.json();
       log(`AI 应手: ${j.engineMove}`);
+      const ai = moveToCoord(j.engineMove);
+      const aiColor = (playerColor === 'black') ? 'white' : 'black';
+      if(ai) stones.push({x:ai.x, y:ai.y, color: aiColor});
+      drawBoard();
       updateStatus();
     });
 
@@ -155,7 +222,9 @@
       log('你认输，已关闭对局');
       gameId = null;
       document.getElementById('resign').disabled = true;
+      stones = [];
       updateStatus();
+      drawBoard();
     };
 
     updateStatus();
