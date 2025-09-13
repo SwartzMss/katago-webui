@@ -423,18 +423,23 @@ fn parse_gtp_move(resp: &str) -> String {
 }
 
 fn overrides_for_level(level: u8) -> Vec<(&'static str, String)> {
-    // 5 档映射：访问/时间 + 随机性（根温度 & 开局噪声）
-    let (visits, time_sec, root_temp, opening_noise) = match level {
-        1 => (80, 0.3, 1.3, 0.15),
-        2 => (200, 0.5, 0.9, 0.10),
-        3 => (600, 1.0, 0.6, 0.05),
-        4 => (2000, 2.0, 0.3, 0.02),
-        _ => (8000, 4.0, 0.0, 0.00),
+    // 5 档映射：访问/时间 + 随机性（根温度 & 选点温度-前期）
+    let (visits, time_sec, root_temp) = match level {
+        1 => (80, 0.3, 1.3),
+        2 => (200, 0.5, 0.9),
+        3 => (600, 1.0, 0.6),
+        4 => (2000, 2.0, 0.3),
+        _ => (8000, 4.0, 0.0),
     };
+    // 使用新版参数：开局阶段给一点随机性
+    let chosen_move_temp_early = 0.6_f32; // 建议值
+    let chosen_move_temp_halflife = 19_u32; // 建议值（约 19 手后衰减一半）
+
     vec![
         ("maxVisits", visits.to_string()),
         ("maxTime", format!("{:.2}", time_sec)),
         ("rootPolicyTemperature", format!("{:.2}", root_temp)),
-        ("openingRandomness", format!("{:.2}", opening_noise)),
+        ("chosenMoveTemperatureEarly", format!("{:.2}", chosen_move_temp_early)),
+        ("chosenMoveTemperatureHalflife", chosen_move_temp_halflife.to_string()),
     ]
 }
