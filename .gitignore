@@ -1,0 +1,9 @@
+.env
+.env.local
+target/
+*/target/
+**/.DS_Store
+
+# KataGo 本地引擎与模型（不入库）
+katago-cuda/
+

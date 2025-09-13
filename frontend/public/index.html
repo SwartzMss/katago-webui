@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KataGo Web 对局 MVP</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; }
+    header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; padding: 16px; }
+    #board { width: 640px; height: 640px; background: #f3c98b; border: 1px solid #ccc; position: relative; }
+    .panel { border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+    .row { margin-bottom: 8px; }
+    button { padding: 6px 12px; }
+    #log { height: 160px; overflow: auto; background: #fafafa; border: 1px solid #eee; padding: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>KataGo Web 对局 MVP</div>
+    <div id="status">状态: 未连接</div>
+  </header>
+  <main>
+    <div>
+      <canvas id="board" width="640" height="640"></canvas>
+      <div class="panel" style="margin-top:12px;">
+        <div class="row"><strong>日志</strong></div>
+        <pre id="log"></pre>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row"><strong>对局控制</strong></div>
+      <div class="row">
+        难度：
+        <select id="level">
+          <option value="1">1★</option>
+          <option value="2">2★</option>
+          <option value="3" selected>3★</option>
+          <option value="4">4★</option>
+          <option value="5">5★</option>
+        </select>
+      </div>
+      <div class="row">
+        执方：
+        <select id="playerColor">
+          <option value="black" selected>我执黑（先手）</option>
+          <option value="white">我执白（后手）</option>
+        </select>
+      </div>
+      <div class="row">
+        <button id="newGame">新开对局</button>
+        <button id="resign" disabled>认输</button>
+      </div>
+      <div class="row" style="font-size:12px;color:#666">并发上限：3 局</div>
+    </div>
+  </main>
+  <script>
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+    const board = document.getElementById('board');
+    const ctx = board.getContext('2d');
+
+    let gameId = null;
+    let heartbeatTimer = null;
+
+    function log(msg){
+      const t = new Date().toLocaleTimeString();
+      logEl.textContent += `[${t}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function drawBoard(){
+      ctx.clearRect(0,0,640,640);
+      ctx.fillStyle = '#f3c98b';
+      ctx.fillRect(0,0,640,640);
+      ctx.strokeStyle = '#444';
+      for(let i=0;i<19;i++){
+        const x = 20 + i * 32; // 19线*间距32≈576，留些边距
+        ctx.beginPath(); ctx.moveTo(32, x); ctx.lineTo(608, x); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, 32); ctx.lineTo(x, 608); ctx.stroke();
+      }
+    }
+
+    drawBoard();
+
+    function updateStatus(){
+      fetch('/api/engine/status')
+        .then(r=>r.json())
+        .then(j=>{ statusEl.textContent = `状态: 在线, 活动局 ${j.activeGames}/3`; })
+        .catch(()=>{ statusEl.textContent = '状态: 不可用'; });
+    }
+
+    async function newGame(){
+      const level = document.getElementById('level').value;
+      const playerColor = document.getElementById('playerColor').value;
+      const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
+      const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+      if(res.status === 429){
+        const j = await res.json();
+        alert(`过载：${j.message}`);
+        return;
+      }
+      if(!res.ok){ log('新开对局失败'); return; }
+      const j = await res.json();
+      gameId = j.gameId;
+      log(`新开对局: ${gameId}`);
+      if(j.engineMove){
+        log(`AI 首手: ${j.engineMove}`);
+      }
+      document.getElementById('resign').disabled = false;
+      startHeartbeat();
+      updateStatus();
+    }
+
+    function startHeartbeat(){
+      stopHeartbeat();
+      heartbeatTimer = setInterval(async ()=>{
+        if(!gameId) return;
+        await fetch('/api/game/heartbeat', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId }) });
+      }, 15000);
+    }
+    function stopHeartbeat(){ if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer=null; } }
+
+    function coordToMove(x,y){
+      // 简化：将点击转换为最近的交叉点，再转 SGF 坐标（A1 起）
+      const gx = Math.round((x-32)/32);
+      const gy = Math.round((y-32)/32);
+      if(gx<0||gx>18||gy<0||gy>18) return null;
+      const letters = 'ABCDEFGHJKLMNOPQRST';
+      const col = letters[gx];
+      const row = 19-gy;
+      return col + row;
+    }
+
+    board.addEventListener('click', async (e)=>{
+      if(!gameId){ alert('请先新开对局'); return; }
+      const rect = board.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const mv = coordToMove(x,y);
+      if(!mv) return;
+      log(`你落子: ${mv}`);
+      const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
+      if(res.status === 410){ alert('对局已过期'); return; }
+      const j = await res.json();
+      log(`AI 应手: ${j.engineMove}`);
+      updateStatus();
+    });
+
+    document.getElementById('newGame').onclick = newGame;
+    document.getElementById('resign').onclick = async ()=>{
+      if(!gameId) return;
+      await fetch('/api/game/close', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId }) });
+      stopHeartbeat();
+      log('你认输，已关闭对局');
+      gameId = null;
+      document.getElementById('resign').disabled = true;
+      updateStatus();
+    };
+
+    updateStatus();
+  </script>
+</body>
+</html>
