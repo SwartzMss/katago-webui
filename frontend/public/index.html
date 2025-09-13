@@ -149,6 +149,76 @@
       return stones.some(s => s.x === x && s.y === y);
     }
 
+    function stoneColorAt(x, y){
+      const s = stones.find(s => s.x === x && s.y === y);
+      return s ? s.color : null;
+    }
+
+    function neighbors(x, y){
+      const out = [];
+      if(x>0) out.push({x:x-1,y});
+      if(x<18) out.push({x:x+1,y});
+      if(y>0) out.push({x,y:y-1});
+      if(y<18) out.push({x,y:y+1});
+      return out;
+    }
+
+    function groupAndLiberties(startX, startY){
+      const color = stoneColorAt(startX,startY);
+      if(!color) return {group:[], liberties:new Set()};
+      const key = (p)=>p.x+','+p.y;
+      const seen = new Set([key({x:startX,y:startY})]);
+      const group = [{x:startX,y:startY}];
+      const liberties = new Set();
+      const q = [{x:startX,y:startY}];
+      while(q.length){
+        const p = q.pop();
+        for(const nb of neighbors(p.x,p.y)){
+          const c = stoneColorAt(nb.x, nb.y);
+          if(!c){ liberties.add(key(nb)); continue; }
+          if(c === color){
+            const k = key(nb);
+            if(!seen.has(k)){
+              seen.add(k);
+              group.push(nb);
+              q.push(nb);
+            }
+          }
+        }
+      }
+      return {group, liberties};
+    }
+
+    function removeGroup(group){
+      const set = new Set(group.map(p=>p.x+","+p.y));
+      stones = stones.filter(s => !set.has(s.x+","+s.y));
+    }
+
+    function applyMoveLocal(color, x, y){
+      // 放置
+      stones.push({x,y,color});
+      // 先检查并提掉对方相邻气尽的块
+      const opp = (color === 'black') ? 'white' : 'black';
+      let totalCaptures = 0;
+      for(const nb of neighbors(x,y)){
+        if(stoneColorAt(nb.x, nb.y) === opp){
+          const {group, liberties} = groupAndLiberties(nb.x, nb.y);
+          if(liberties.size === 0){
+            totalCaptures += group.length;
+            removeGroup(group);
+          }
+        }
+      }
+      // 再检查己方这块是否还有气（防自杀，除非刚刚提子产生气）
+      const selfInfo = groupAndLiberties(x,y);
+      if(selfInfo.liberties.size === 0){
+        // 自杀，回滚
+        stones = stones.filter(s => !(s.x===x && s.y===y && s.color===color));
+        return {ok:false, captures:0};
+      }
+      return {ok:true, captures:totalCaptures};
+    }
+
     async function newGame(){
       const level = document.getElementById('level').value;
       playerColor = document.getElementById('playerColor').value;
@@ -168,7 +238,9 @@
         log(`AI 首手: ${j.engineMove}`);
         const coord = moveToCoord(j.engineMove);
         const aiColor = (playerColor === 'white') ? 'black' : 'white';
-        if(coord) stones.push({x:coord.x, y:coord.y, color: aiColor});
+        if(coord){
+          applyMoveLocal(aiColor, coord.x, coord.y);
+        }
       }
       document.getElementById('resign').disabled = false;
       startHeartbeat();
@@ -213,8 +285,13 @@
       }
 
       log(`你落子: ${mv}`);
-      // 先在本地渲染你的棋子（乐观更新）
-      stones.push({x:coord.x, y:coord.y, color: playerColor});
+      // 本地规则：先行检测自杀禁手和提子效果（乐观）
+      const applied = applyMoveLocal(playerColor, coord.x, coord.y);
+      if(!applied.ok){
+        log('非法落子（自杀禁手），已阻止');
+        return;
+      }
+      if(applied.captures>0){ log(`提子: ${applied.captures}`); }
       drawBoard();
 
       isPlayingRequest = true;
@@ -238,12 +315,15 @@
         log(`AI 应手: ${j.engineMove}`);
         const ai = moveToCoord(j.engineMove);
         const aiColor = (playerColor === 'black') ? 'white' : 'black';
-        if(ai && !hasStone(ai.x, ai.y)) stones.push({x:ai.x, y:ai.y, color: aiColor});
+        if(ai){
+          const result = applyMoveLocal(aiColor, ai.x, ai.y);
+          if(result.captures>0){ log(`AI 提子: ${result.captures}`); }
+        }
         drawBoard();
         updateStatus();
       }catch(err){
         log('网络错误：' + err);
-        // 回滚
+        // 回滚：移除你刚才的落子（以及由于它产生的提子无法简单恢复，这里直接重置到“移除你的子”的近似状态）
         stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
         drawBoard();
       }finally{
