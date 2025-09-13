@@ -1,5 +1,3 @@
-.env
-.env.local
 target/
 */target/
 **/.DS_Store
