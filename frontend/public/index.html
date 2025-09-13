@@ -13,6 +13,7 @@
     .row { margin-bottom: 8px; }
     button { padding: 6px 12px; }
     #log { height: 160px; overflow: auto; background: #fafafa; border: 1px solid #eee; padding: 8px; }
+    .caps { font-size: 13px; color:#333; }
   </style>
 </head>
 <body>
@@ -51,6 +52,9 @@
         <button id="newGame">新开对局</button>
         <button id="resign" disabled>认输</button>
       </div>
+      <div class="row caps">
+        累计提子：黑 <span id="capB">0</span> 子，白 <span id="capW">0</span> 子
+      </div>
       <div class="row" style="font-size:12px;color:#666">并发上限：3 局</div>
     </div>
   </main>
@@ -59,12 +63,20 @@
     const statusEl = document.getElementById('status');
     const board = document.getElementById('board');
     const ctx = board.getContext('2d');
+    const capBEl = document.getElementById('capB');
+    const capWEl = document.getElementById('capW');
 
     let gameId = null;
     let heartbeatTimer = null;
     let stones = []; // {x:0..18, y:0..18, color:'black'|'white'}
     let playerColor = 'black';
     let isPlayingRequest = false;
+    let caps = { black: 0, white: 0 };
+
+    function updateCaps(){
+      capBEl.textContent = caps.black;
+      capWEl.textContent = caps.white;
+    }
 
     function log(msg){
       const t = new Date().toLocaleTimeString();
@@ -89,7 +101,6 @@
     drawBoard();
 
     function drawStarPoints(){
-      // 标准 19 路棋盘九个星位
       const pts = [3,9,15];
       ctx.fillStyle = '#333';
       for(const i of pts){
@@ -132,14 +143,13 @@
     }
 
     function moveToCoord(mv){
-      // 将 'Q16' → {x:colIndex(0..18), y:rowIndex(0..18)}，(0,0) 为左上角
       if(!mv || mv === 'pass' || mv === 'resign') return null;
       const letters = 'ABCDEFGHJKLMNOPQRST';
       const colChar = mv[0].toUpperCase();
       const col = letters.indexOf(colChar);
       const rowNum = parseInt(mv.slice(1), 10);
       if(col < 0 || isNaN(rowNum)) return null;
-      const y = 19 - rowNum; // 屏幕 y 向下
+      const y = 19 - rowNum;
       const x = col;
       if(x<0||x>18||y<0||y>18) return null;
       return {x, y};
@@ -195,9 +205,7 @@
     }
 
     function applyMoveLocal(color, x, y){
-      // 放置
       stones.push({x,y,color});
-      // 先检查并提掉对方相邻气尽的块
       const opp = (color === 'black') ? 'white' : 'black';
       let totalCaptures = 0;
       for(const nb of neighbors(x,y)){
@@ -209,10 +217,8 @@
           }
         }
       }
-      // 再检查己方这块是否还有气（防自杀，除非刚刚提子产生气）
       const selfInfo = groupAndLiberties(x,y);
       if(selfInfo.liberties.size === 0){
-        // 自杀，回滚
         stones = stones.filter(s => !(s.x===x && s.y===y && s.color===color));
         return {ok:false, captures:0};
       }
@@ -234,12 +240,15 @@
       gameId = j.gameId;
       log(`新开对局: ${gameId}`);
       stones = [];
+      caps = {black:0, white:0};
+      updateCaps();
       if(j.engineMove){
         log(`AI 首手: ${j.engineMove}`);
         const coord = moveToCoord(j.engineMove);
         const aiColor = (playerColor === 'white') ? 'black' : 'white';
         if(coord){
-          applyMoveLocal(aiColor, coord.x, coord.y);
+          const r = applyMoveLocal(aiColor, coord.x, coord.y);
+          if(r.captures>0){ caps[aiColor] += r.captures; updateCaps(); }
         }
       }
       document.getElementById('resign').disabled = false;
@@ -258,7 +267,6 @@
     function stopHeartbeat(){ if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer=null; } }
 
     function coordToMove(x,y){
-      // 简化：将点击转换为最近的交叉点，再转 SGF 坐标（A1 起）
       const gx = Math.round((x-32)/32);
       const gy = Math.round((y-32)/32);
       if(gx<0||gx>18||gy<0||gy>18) return null;
@@ -270,7 +278,7 @@
 
     board.addEventListener('click', async (e)=>{
       if(!gameId){ alert('请先新开对局'); return; }
-      if(isPlayingRequest){ return; } // 并发点击保护
+      if(isPlayingRequest){ return; }
       const rect = board.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -285,13 +293,12 @@
       }
 
       log(`你落子: ${mv}`);
-      // 本地规则：先行检测自杀禁手和提子效果（乐观）
       const applied = applyMoveLocal(playerColor, coord.x, coord.y);
       if(!applied.ok){
         log('非法落子（自杀禁手），已阻止');
         return;
       }
-      if(applied.captures>0){ log(`提子: ${applied.captures}`); }
+      if(applied.captures>0){ caps[playerColor] += applied.captures; updateCaps(); log(`提子: ${applied.captures}`); }
       drawBoard();
 
       isPlayingRequest = true;
@@ -299,14 +306,12 @@
         const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
         if(res.status === 410){
           alert('对局已过期');
-          // 回滚你刚才那手
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
           return;
         }
         if(!res.ok){
           log('落子失败');
-          // 回滚
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
           return;
@@ -317,13 +322,12 @@
         const aiColor = (playerColor === 'black') ? 'white' : 'black';
         if(ai){
           const result = applyMoveLocal(aiColor, ai.x, ai.y);
-          if(result.captures>0){ log(`AI 提子: ${result.captures}`); }
+          if(result.captures>0){ caps[aiColor] += result.captures; updateCaps(); log(`AI 提子: ${result.captures}`); }
         }
         drawBoard();
         updateStatus();
       }catch(err){
         log('网络错误：' + err);
-        // 回滚：移除你刚才的落子（以及由于它产生的提子无法简单恢复，这里直接重置到“移除你的子”的近似状态）
         stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
         drawBoard();
       }finally{
@@ -340,11 +344,14 @@
       gameId = null;
       document.getElementById('resign').disabled = true;
       stones = [];
+      caps = {black:0, white:0};
+      updateCaps();
       updateStatus();
       drawBoard();
     };
 
     updateStatus();
+    updateCaps();
   </script>
 </body>
 </html>
