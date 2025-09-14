@@ -5,83 +5,193 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KataGo Web 对局 MVP</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; }
-    header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; padding: 16px; }
+    :root { --primary:#1677ff; --border:#eee; --text:#333; --panel-bg:#fff; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; color: var(--text); }
+    header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: center; align-items: center; font-weight:600; }
+    main { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }
     #board { width: 640px; height: 640px; background: #f3c98b; border: 1px solid #ccc; position: relative; }
-    .panel { border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+    #boardWrap { }
+    #controlsPanel { position: static; display: grid; grid-template-columns: 1fr 1fr 1fr; justify-content: center; column-gap: 16px; row-gap: 10px; width: 640px; max-width: 90vw; background: var(--panel-bg); box-shadow: 0 1px 3px #0000000f; border: 1px solid var(--border); border-radius: 10px; padding-top: 8px; padding-bottom: 8px; }
+    #controlsPanel .row { display: flex; align-items: center; gap: 8px; }
+    #controlsPanel .row.center { justify-content: center; }
+    #controlsPanel .label { min-width: 48px; text-align: right; color: #333; }
+    #controlsPanel .span-3 { grid-column: 1 / -1; }
+    /* 难度选择框 */
+    select#levelSelect { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+    /* 执方开关 */
+    .toggle { display: inline-flex; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+    .toggle button { padding: 8px 12px; border: 0; background: #fff; cursor: pointer; }
+    .toggle button.active { background: var(--primary); color: #fff; }
+    /* 头像 */
+    .avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background:#f0f2f5; border:1px solid var(--border); font-weight: 600; color:#555; box-shadow: 0 1px 2px #0000000a; }
+    .avatar.you { background:#e6f4ff; color:#1677ff; }
+    .avatar.ai { background:#fff7e6; color:#fa8c16; }
+    .avatar-box { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:12px; color:#666; }
+    .meta { display:flex; align-items:center; gap:6px; }
+    .color-dot { width:10px; height:10px; border-radius:50%; display:inline-block; border:1px solid #999; }
+    .color-dot.black { background:#111; border-color:#000; }
+    .color-dot.white { background:#fff; border-color:#999; }
+    .btn-group { display:inline-flex; gap:10px; }
+    /* 按钮 */
+    .btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; transition: all .15s ease; }
+    .btn:hover { box-shadow: 0 2px 6px #00000014; }
+    .btn-primary { background: var(--primary); color:#fff; border-color: var(--primary); }
+    .btn-primary:hover { filter: brightness(1.05); }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .btn-primary[disabled] { background:#c9c9c9; border-color:#c9c9c9; color:#fff; }
+    /* 日志开关 Switch */
+    .switch { display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+    .switch input { position:absolute; opacity:0; width:0; height:0; }
+    .switch .slider { width:40px; height:22px; background:#ccc; border-radius:999px; position:relative; transition:background .15s ease; }
+    .switch .slider::before { content:""; position:absolute; width:18px; height:18px; background:#fff; border-radius:50%; left:2px; top:2px; box-shadow:0 1px 3px #00000033; transition:transform .15s ease; }
+    .switch input:checked + .slider { background: var(--primary); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+    #logsPanel { width: 640px; max-width: 90vw; }
+    .panel { border: 1px solid #eee; padding: 12px; border-radius: 8px; background: var(--panel-bg); }
     .row { margin-bottom: 8px; }
     button { padding: 6px 12px; }
-    #log { height: 160px; overflow: auto; background: #fafafa; border: 1px solid #eee; padding: 8px; }
+    #log { height: 180px; overflow: auto; background: #fafafa; border: 1px solid #eee; padding: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; resize: vertical; }
     .caps { font-size: 13px; color:#333; }
+    
   </style>
 </head>
 <body>
   <header>
-    <div>KataGo Web 对局 MVP</div>
-    <div id="status">状态: 未连接</div>
+    <div>KataGo Web</div>
   </header>
   <main>
-    <div>
-      <canvas id="board" width="640" height="640"></canvas>
-      <div class="panel" style="margin-top:12px;">
-        <div class="row"><strong>日志</strong></div>
-        <pre id="log"></pre>
+    <div class="panel" id="controlsPanel">
+      <!-- 第一行：执子选择 | 难度 | 调试模式 -->
+      <div class="row" style="grid-column:1; justify-content:flex-start;">
+        <span class="label">执子：</span>
+        <div class="toggle" id="colorToggle">
+          <button type="button" data-color="black" class="active">执黑</button>
+          <button type="button" data-color="white">执白</button>
+        </div>
       </div>
+      <div class="row" style="grid-column:2; justify-content:center;">
+        <span class="label">难度：</span>
+        <select id="levelSelect">
+          <option value="1">★ 一星</option>
+          <option value="2" selected>★★ 二星</option>
+          <option value="3">★★★ 三星</option>
+          <option value="4">★★★★ 四星</option>
+          <option value="5">★★★★★ 五星</option>
+        </select>
+      </div>
+      <div class="row" style="grid-column:3; justify-content:flex-end;">
+        <label class="switch">
+          <input type="checkbox" id="debugSwitch">
+          <span class="slider"></span>
+          <span>调试模式</span>
+        </label>
+      </div>
+
+      <!-- 第二行：头像 | 按钮组 | 头像 -->
+      <div class="row center" style="grid-column:1;">
+        <div class="avatar-box">
+          <div class="avatar you">我</div>
+          <div class="meta"><span class="color-dot" id="meColor"></span> 吃掉: <span id="capMe">0</span></div>
+        </div>
+      </div>
+      <div class="row center" style="grid-column:2;">
+        <div class="btn-group">
+          <button id="startBtn" class="btn btn-primary">开始</button>
+          <button id="resign" class="btn" disabled>认输</button>
+        </div>
+      </div>
+      <div class="row center" style="grid-column:3;">
+        <div class="avatar-box">
+          <div class="avatar ai">AI</div>
+          <div class="meta"><span class="color-dot" id="aiColor"></span> 吃掉: <span id="capAI">0</span></div>
+        </div>
+      </div>
+
+      
+      
     </div>
-    <div class="panel">
-      <div class="row"><strong>对局控制</strong></div>
-      <div class="row">
-        难度：
-        <select id="level">
-          <option value="1">1★</option>
-          <option value="2">2★</option>
-          <option value="3" selected>3★</option>
-          <option value="4">4★</option>
-          <option value="5">5★</option>
-        </select>
-      </div>
-      <div class="row">
-        执方：
-        <select id="playerColor">
-          <option value="black" selected>我执黑（先手）</option>
-          <option value="white">我执白（后手）</option>
-        </select>
-      </div>
-      <div class="row">
-        <button id="newGame">新开对局</button>
-        <button id="resign" disabled>认输</button>
-      </div>
-      <div class="row caps">
-        累计提子：黑 <span id="capB">0</span> 子，白 <span id="capW">0</span> 子
-      </div>
-      <div class="row" style="font-size:12px;color:#666">并发上限：3 局</div>
+    <div id="boardWrap">
+      <canvas id="board" width="640" height="640"></canvas>
+    </div>
+    <div class="panel" id="logsPanel" style="display:none;">
+      <div class="row"><strong>日志</strong></div>
+      <pre id="log"></pre>
     </div>
   </main>
   <script>
     const logEl = document.getElementById('log');
-    const statusEl = document.getElementById('status');
+    const statusEl = null; // header no longer shows status
     const board = document.getElementById('board');
     const ctx = board.getContext('2d');
-    const capBEl = document.getElementById('capB');
-    const capWEl = document.getElementById('capW');
+    const capMeEl = document.getElementById('capMe');
+    const capAIEl = document.getElementById('capAI');
+    const logsPanel = document.getElementById('logsPanel');
+    const colorToggle = document.getElementById('colorToggle');
+    const levelSelect = document.getElementById('levelSelect');
+    const startBtn = document.getElementById('startBtn');
+    const debugSwitch = document.getElementById('debugSwitch');
+    const resignBtn = document.getElementById('resign');
+    // 日志显示改由调试模式开关控制
+
+    const LOGS_KEY = 'katago_logs_v1';
+    const LOGS_MAX = 500;
+    function loadLogsMap(){
+      try{ return JSON.parse(localStorage.getItem(LOGS_KEY) || '{}'); }catch(_){ return {}; }
+    }
+    function saveLogsMap(map){
+      try{ localStorage.setItem(LOGS_KEY, JSON.stringify(map)); }catch(_){}
+    }
+    function currentLogKey(){ return gameId || 'global'; }
+    function renderLogs(){
+      const map = loadLogsMap();
+      const arr = Array.isArray(map[currentLogKey()]) ? map[currentLogKey()] : [];
+      logEl.textContent = arr.join('\n') + (arr.length ? '\n' : '');
+      logEl.scrollTop = logEl.scrollHeight;
+    }
 
     let gameId = null;
     let heartbeatTimer = null;
     let stones = []; // {x:0..18, y:0..18, color:'black'|'white'}
     let playerColor = 'black';
+    function getSelectedLevel(){
+      return levelSelect ? Number(levelSelect.value) : 2;
+    }
+    colorToggle.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-color]');
+      if(!btn) return;
+      playerColor = btn.getAttribute('data-color');
+      colorToggle.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+    });
     let isPlayingRequest = false;
     let caps = { black: 0, white: 0 };
 
     function updateCaps(){
-      capBEl.textContent = caps.black;
-      capWEl.textContent = caps.white;
+      // 我执黑则我=black；我执白则我=white
+      const me = (playerColor === 'black') ? 'black' : 'white';
+      const ai = (playerColor === 'black') ? 'white' : 'black';
+      capMeEl.textContent = caps[me];
+      capAIEl.textContent = caps[ai];
+      const meDot = document.getElementById('meColor');
+      const aiDot = document.getElementById('aiColor');
+      if(meDot && aiDot){
+        meDot.classList.toggle('black', me === 'black');
+        meDot.classList.toggle('white', me === 'white');
+        aiDot.classList.toggle('black', ai === 'black');
+        aiDot.classList.toggle('white', ai === 'white');
+      }
     }
 
     function log(msg){
       const t = new Date().toLocaleTimeString();
-      logEl.textContent += `[${t}] ${msg}\n`;
-      logEl.scrollTop = logEl.scrollHeight;
+      const line = `[${t}] ${msg}`;
+      const map = loadLogsMap();
+      const key = currentLogKey();
+      const list = Array.isArray(map[key]) ? map[key] : [];
+      list.push(line);
+      if(list.length > LOGS_MAX){ list.splice(0, list.length - LOGS_MAX); }
+      map[key] = list;
+      saveLogsMap(map);
+      renderLogs();
     }
 
     function drawBoard(){
@@ -136,10 +246,8 @@
     }
 
     function updateStatus(){
-      fetch('/api/engine/status')
-        .then(r=>r.json())
-        .then(j=>{ statusEl.textContent = `状态: 在线, 活动局 ${j.activeGames}/3`; })
-        .catch(()=>{ statusEl.textContent = '状态: 不可用'; });
+      // status hidden in header; keep call lightweight or remove if unnecessary
+      // fetch('/api/engine/status').catch(()=>{});
     }
 
     function moveToCoord(mv){
@@ -226,35 +334,46 @@
     }
 
     async function newGame(){
-      const level = document.getElementById('level').value;
-      playerColor = document.getElementById('playerColor').value;
-      const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
-      const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
-      if(res.status === 429){
+      try{
+        const level = getSelectedLevel();
+        const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
+        const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+        if(res.status === 429){
+          const j = await res.json();
+          alert(`过载：${j.message}`);
+          if(startBtn) startBtn.disabled = false;
+          return;
+        }
+        if(!res.ok){
+          log(`新开对局失败（${res.status}）`);
+          if(startBtn) startBtn.disabled = false;
+          return;
+        }
         const j = await res.json();
-        alert(`过载：${j.message}`);
-        return;
-      }
-      if(!res.ok){ log('新开对局失败'); return; }
-      const j = await res.json();
       gameId = j.gameId;
+      renderLogs(); // 切换至本局日志（初始为空）
       log(`新开对局: ${gameId}`);
       stones = [];
       caps = {black:0, white:0};
       updateCaps();
       if(j.engineMove){
-        log(`AI 首手: ${j.engineMove}`);
-        const coord = moveToCoord(j.engineMove);
+        const mvStr = String(j.engineMove || '').trim();
+        log(`AI 首手: ${mvStr}`);
+        const coord = moveToCoord(mvStr);
         const aiColor = (playerColor === 'white') ? 'black' : 'white';
         if(coord){
           const r = applyMoveLocal(aiColor, coord.x, coord.y);
           if(r.captures>0){ caps[aiColor] += r.captures; updateCaps(); }
         }
       }
-      document.getElementById('resign').disabled = false;
+      if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
       startHeartbeat();
       updateStatus();
       drawBoard();
+      }catch(err){
+        log('新开对局失败（网络错误）');
+        if(startBtn) startBtn.disabled = false;
+      }
     }
 
     function startHeartbeat(){
@@ -317,8 +436,9 @@
           return;
         }
         const j = await res.json();
-        log(`AI 应手: ${j.engineMove}`);
-        const ai = moveToCoord(j.engineMove);
+        const mvStr = String(j.engineMove || '').trim();
+        log(`AI 应手: ${mvStr}`);
+        const ai = moveToCoord(mvStr);
         const aiColor = (playerColor === 'black') ? 'white' : 'black';
         if(ai){
           const result = applyMoveLocal(aiColor, ai.x, ai.y);
@@ -335,14 +455,39 @@
       }
     });
 
-    document.getElementById('newGame').onclick = newGame;
+    if(startBtn){
+      startBtn.onclick = async () => {
+        if(gameId){ return; }
+        startBtn.disabled = true;
+        await newGame();
+      };
+    }
+    // restart removed
+    if(debugSwitch){
+      let debugMode = debugSwitch.checked;
+      const applyDebugUI = () => {
+        if(debugMode){
+          logsPanel.style.display = 'block';
+          renderLogs();
+        } else {
+          logsPanel.style.display = 'none';
+        }
+      };
+      applyDebugUI();
+      debugSwitch.addEventListener('change', ()=>{
+        debugMode = debugSwitch.checked;
+        // 不再把调试模式切换写入持久化日志，避免刷新后出现大量历史切换记录
+        applyDebugUI();
+      });
+    }
     document.getElementById('resign').onclick = async ()=>{
       if(!gameId) return;
       await fetch('/api/game/close', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId }) });
       stopHeartbeat();
       log('你认输，已关闭对局');
       gameId = null;
-      document.getElementById('resign').disabled = true;
+      if(resignBtn){ resignBtn.disabled = true; resignBtn.classList.remove('btn-primary'); }
+      startBtn.disabled = false;
       stones = [];
       caps = {black:0, white:0};
       updateCaps();

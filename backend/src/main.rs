@@ -412,41 +412,40 @@ async fn game_play(
     Json(payload): Json<PlayPayload>,
 ) -> impl IntoResponse {
     let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    // 校验 gameId
-    if let Some(mut gs) = state.game_store.get_mut(&payload.gameId) {
+    // 读取必要信息后释放 guard，避免跨 await 持有 DashMap 锁
+    let (engine_opt, human_is_black) = if let Some(mut gs) = state.game_store.get_mut(&payload.gameId) {
         gs.last_active_at = now;
-        let human_is_black = gs.human_color == "black";
-        // 若有真实引擎
-        if let Some(engine) = gs.engine.as_ref() {
-            let human_color = if human_is_black { 'B' } else { 'W' };
-            let ai_color = if human_is_black { 'W' } else { 'B' };
-            let _ = engine.send_command(&format!("play {} {}", human_color, payload.playerMove)).await;
-            match engine.send_command(&format!("genmove {}", ai_color)).await {
-                Ok(resp) => {
-                    let mv = parse_gtp_move(&resp);
-                    drop(gs);
-                    let body = serde_json::json!({
-                        "engineMove": mv,
-                        "captures": [],
-                        "end": {"finished": false}
-                    });
-                    return (StatusCode::OK, Json(body));
-                }
-                Err(err) => {
-                    tracing::error!(?err, "genmove failed");
-                }
+        (gs.engine.clone(), gs.human_color == "black")
+    } else {
+        return (StatusCode::GONE, Json(serde_json::json!({"error":"GAME_EXPIRED"})));
+    };
+
+    if let Some(engine) = engine_opt {
+        let human_color = if human_is_black { 'B' } else { 'W' };
+        let ai_color = if human_is_black { 'W' } else { 'B' };
+        let _ = engine.send_command(&format!("play {} {}", human_color, payload.playerMove)).await;
+        match engine.send_command(&format!("genmove {}", ai_color)).await {
+            Ok(resp) => {
+                let mv = parse_gtp_move(&resp);
+                let body = serde_json::json!({
+                    "engineMove": mv,
+                    "captures": [],
+                    "end": {"finished": false}
+                });
+                return (StatusCode::OK, Json(body));
+            }
+            Err(err) => {
+                tracing::error!(?err, "genmove failed");
             }
         }
-        drop(gs);
-        // 占位：无引擎时固定应手
-        let body = serde_json::json!({
-            "engineMove": "Q16",
-            "captures": [],
-            "end": {"finished": false}
-        });
-        return (StatusCode::OK, Json(body));
     }
-    (StatusCode::GONE, Json(serde_json::json!({"error":"GAME_EXPIRED"})))
+    // 占位：无引擎时固定应手
+    let body = serde_json::json!({
+        "engineMove": "Q16",
+        "captures": [],
+        "end": {"finished": false}
+    });
+    (StatusCode::OK, Json(body))
 }
 
 fn parse_gtp_move(resp: &str) -> String {
