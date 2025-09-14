@@ -90,9 +90,9 @@
       ctx.fillRect(0,0,640,640);
       ctx.strokeStyle = '#444';
       for(let i=0;i<19;i++){
-        const x = 20 + i * 32; // 19线*间距32≈576，留些边距
-        ctx.beginPath(); ctx.moveTo(32, x); ctx.lineTo(608, x); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x, 32); ctx.lineTo(x, 608); ctx.stroke();
+        const p = 32 + i * 32; // 19线*间距32≈576，边距各32
+        ctx.beginPath(); ctx.moveTo(32, p); ctx.lineTo(608, p); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(p, 32); ctx.lineTo(p, 608); ctx.stroke();
       }
       drawStarPoints();
       drawStones();
@@ -352,6 +352,24 @@
 
     updateStatus();
     updateCaps();
+
+    // 页面关闭/离开时，自动关闭当前对局，避免活动局残留
+    function closeGameOnUnload(){
+      if(!gameId) return;
+      try{
+        const payload = JSON.stringify({ gameId });
+        const url = '/api/game/close';
+        if(navigator.sendBeacon){
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        }else{
+          // 作为降级，尽力而为；无需等待结果
+          fetch(url, { method:'POST', headers:{'content-type':'application/json'}, body: payload, keepalive: true }).catch(()=>{});
+        }
+      }catch(_){ /* 忽略 */ }
+    }
+    window.addEventListener('beforeunload', closeGameOnUnload);
+    window.addEventListener('pagehide', closeGameOnUnload);
   </script>
 </body>
 </html>

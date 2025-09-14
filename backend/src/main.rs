@@ -131,6 +131,12 @@ async fn main() {
             cleaner_state.game_store.retain(|game_id, gs| {
                 let expired = now - gs.last_active_at > cleaner_state.game_ttl_seconds;
                 if expired {
+                    // 过期对局：尝试优雅退出其引擎
+                    if let Some(engine) = gs.engine.as_ref() {
+                        let e = engine.clone();
+                        // 在后台异步退出，避免阻塞 retain 闭包
+                        tokio::spawn(async move { let _ = e.quit().await; });
+                    }
                     affected_sids.push((gs.sid.clone(), game_id.clone()));
                 }
                 !expired
@@ -149,6 +155,16 @@ async fn main() {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .unwrap();
+
+    // 服务退出后，清理剩余引擎子进程（尽力而为）
+    let engines: Vec<_> = state
+        .game_store
+        .iter()
+        .filter_map(|kv| kv.engine.clone())
+        .collect();
+    for e in engines {
+        let _ = e.quit().await;
+    }
 }
 
 async fn shutdown_signal() {

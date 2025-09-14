@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::Mutex;
+use tokio::time::{timeout, Duration};
 
 /// 简化的 GTP 引擎实例：提供最基本的命令往返
 pub struct GtpEngine {
@@ -71,10 +72,24 @@ impl GtpEngine {
         Ok(acc)
     }
 
-    /// 优雅退出
+    /// 优雅退出并等待子进程结束；超时则强杀
     pub async fn quit(self: &Arc<Self>) -> Result<()> {
-        let _ = self.send_command("quit").await; // 忽略错误
-        Ok(())
+        // 尝试优雅退出
+        let _ = self.send_command("quit").await;
+
+        // 等待最多 3 秒退出
+        let mut child = self.child.lock().await;
+        match timeout(Duration::from_secs(3), child.wait()).await {
+            Ok(_status) => {
+                return Ok(());
+            }
+            Err(_) => {
+                // 超时，强制杀死
+                let _ = child.kill().await;
+                let _ = child.wait().await; // reap
+                return Ok(());
+            }
+        }
     }
 }
 
