@@ -114,7 +114,10 @@
       <canvas id="board" width="640" height="640"></canvas>
     </div>
     <div class="panel" id="logsPanel" style="display:none;">
-      <div class="row"><strong>日志</strong></div>
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <strong>日志</strong>
+        <button id="clearLogsBtn" class="btn" style="padding:4px 8px; font-size:12px;">清空</button>
+      </div>
       <pre id="log"></pre>
     </div>
   </main>
@@ -141,12 +144,18 @@
     function saveLogsMap(map){
       try{ localStorage.setItem(LOGS_KEY, JSON.stringify(map)); }catch(_){}
     }
-    function currentLogKey(){ return gameId || 'global'; }
+    function currentLogKey(){ return gameId || null; }
     function renderLogs(){
       const map = loadLogsMap();
-      const arr = Array.isArray(map[currentLogKey()]) ? map[currentLogKey()] : [];
+      const key = currentLogKey();
+      const arr = key && Array.isArray(map[key]) ? map[key] : [];
       logEl.textContent = arr.join('\n') + (arr.length ? '\n' : '');
       logEl.scrollTop = logEl.scrollHeight;
+    }
+    function clearLogsForKey(key){
+      const map = loadLogsMap();
+      if(key){ map[key] = []; saveLogsMap(map); }
+      renderLogs();
     }
 
     let gameId = null;
@@ -524,6 +533,7 @@
       const applyDebugUI = () => {
         if(debugMode){
           logsPanel.style.display = 'block';
+          // 无对局时不显示历史“global”日志，保持空白
           renderLogs();
         } else {
           logsPanel.style.display = 'none';
@@ -550,6 +560,12 @@
       updateStatus();
       drawBoard();
     };
+
+    // 清空当前对局日志
+    const clearBtn = document.getElementById('clearLogsBtn');
+    if(clearBtn){
+      clearBtn.onclick = ()=>{ const key = currentLogKey(); if(key) clearLogsForKey(key); };
+    }
 
     updateStatus();
     updateCaps();

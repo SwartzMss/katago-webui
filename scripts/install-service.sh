@@ -10,9 +10,20 @@ UNIT_NAME="katago-webui.service"
 UNIT_PATH="/etc/systemd/system/${UNIT_NAME}"
 RUN_USER="${SUDO_USER:-$(whoami)}"
 
-echo "[1/4] Building backend (release) ..."
-cd "$BACKEND_DIR"
-cargo build --release
+echo "[1/4] Building backend (release) as $RUN_USER ..."
+# Ensure cargo exists for RUN_USER; try sourcing ~/.cargo/env when present
+if ! sudo -u "$RUN_USER" bash -lc 'command -v cargo >/dev/null 2>&1 || { [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"; command -v cargo >/dev/null 2>&1; }'; then
+  cat >&2 <<'EOM'
+Rust toolchain not found for the target user. Please install it first:
+  curl -sSf https://sh.rustup.rs | sh -s -- -y
+  source "$HOME/.cargo/env"
+Then re-run: sudo ./scripts/install-service.sh
+EOM
+  exit 1
+fi
+
+# Build backend as RUN_USER so it uses that user's cargo toolchain/cache
+sudo -u "$RUN_USER" bash -lc "cd '$BACKEND_DIR'; [ -f \"$HOME/.cargo/env\" ] && source \"$HOME/.cargo/env\"; cargo build --release"
 
 BIN_PATH="$BACKEND_DIR/target/release/backend"
 if [[ ! -x "$BIN_PATH" ]]; then
