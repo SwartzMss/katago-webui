@@ -5,10 +5,8 @@ target/
 katago-cuda/
 
 # Backend logs (do not commit)
-backend/logs/*
-!backend/logs/.gitkeep
+backend/logs/
 
 # KataGo GTP logs (do not commit)
-backend/gtp_logs/*
-!backend/gtp_logs/.gitkeep
+backend/gtp_logs/
 

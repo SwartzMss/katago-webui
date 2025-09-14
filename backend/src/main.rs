@@ -73,6 +73,9 @@ async fn main() {
     let log_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("logs");
     let _ = std::fs::create_dir_all(&log_dir);
     let file_appender = rolling::daily(&log_dir, "backend.log");
+    // ensure gtp logs directory exists for KataGo's own logging
+    let gtp_log_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("gtp_logs");
+    let _ = std::fs::create_dir_all(&gtp_log_dir);
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::registry()
         .with(fmt::layer().compact())
