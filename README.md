@@ -45,6 +45,40 @@ RUST_LOG=info cargo run
 - 浏览器访问：`http://localhost:8080/`
 - 点击“新开对局”，在棋盘点击即可触发 `/api/game/play`
 
+## 自启动安装（systemd）
+提供一键安装/卸载脚本，适用于大多数 Linux（基于 systemd）。
+
+前置：确保已安装 Rust，并在仓库根目录 `.env` 配置好引擎路径与端口。
+
+安装并开机自启（首次安装会自动构建并立即启动）：
+```bash
+sudo ./scripts/install-service.sh
+```
+
+常用命令：
+```bash
+# 查看服务状态
+systemctl status katago-webui.service
+
+# 跟随日志
+journalctl -u katago-webui.service -f
+
+# 停止 / 启动 / 重启
+sudo systemctl stop katago-webui.service
+sudo systemctl start katago-webui.service
+sudo systemctl restart katago-webui.service
+```
+
+卸载自启动：
+```bash
+sudo ./scripts/uninstall-service.sh
+```
+
+说明：
+- 单元文件位置：`/etc/systemd/system/katago-webui.service`
+- 以当前 sudo 调用者身份运行（自动识别 `$SUDO_USER`）
+- 读取环境：`backend/.env` 与仓库根 `.env`（若存在）
+
 ## 配置 KataGo（可选）
 - 路径在 `.env` 中配置（未配置则使用占位应手）。
 - 自检：
