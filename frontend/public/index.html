@@ -56,6 +56,12 @@
   </style>
 </head>
 <body>
+  <!-- 居中提示浮层 -->
+  <style>
+    #toast { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.98); background: rgba(0,0,0,0.85); color:#fff; padding: 10px 16px; border-radius: 10px; box-shadow: 0 6px 20px #00000033; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 9999; font-size:14px; }
+    #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  </style>
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <header>
     <div>KataGo Web</div>
   </header>
@@ -397,12 +403,13 @@
         const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
         if(res.status === 429){
           const j = await res.json();
-          alert(`过载：${j.message}`);
+          showToast(`过载：${j.message}`);
           if(startBtn) startBtn.disabled = false;
           return;
         }
         if(!res.ok){
           log(`新开对局失败（${res.status}）`);
+          showToast(`新开对局失败（${res.status}）`);
           if(startBtn) startBtn.disabled = false;
           return;
         }
@@ -431,6 +438,7 @@
       drawBoard();
       }catch(err){
         log('新开对局失败（网络错误）');
+        showToast('新开对局失败（网络错误）');
         if(startBtn) startBtn.disabled = false;
       } finally {
         isStartingGame = false;
@@ -457,8 +465,8 @@
     }
 
     board.addEventListener('click', async (e)=>{
-      if(isStartingGame){ alert('正在开局，请稍候…'); return; }
-      if(!gameId){ alert('请先新开对局'); return; }
+      if(isStartingGame){ showToast('正在开局，请稍候…'); return; }
+      if(!gameId){ showToast('请先新开对局'); return; }
       if(isPlayingRequest){ return; }
       const rect = board.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -477,6 +485,7 @@
       const applied = applyMoveLocal(playerColor, coord.x, coord.y);
       if(!applied.ok){
         log('非法落子（自杀禁手），已阻止');
+        showToast('非法落子（自杀禁手）');
         return;
       }
       lastHumanMove = { x: coord.x, y: coord.y };
@@ -487,13 +496,14 @@
       try{
         const res = await fetch('/api/game/play', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId, playerMove: mv }) });
         if(res.status === 410){
-          alert('对局已过期');
+          showToast('对局已过期');
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
           return;
         }
         if(!res.ok){
           log('落子失败');
+          showToast('落子失败');
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
           return;
@@ -513,6 +523,7 @@
         updateStatus();
       }catch(err){
         log('网络错误：' + err);
+        showToast('网络错误');
         stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
         drawBoard();
       }finally{
@@ -565,6 +576,17 @@
     const clearBtn = document.getElementById('clearLogsBtn');
     if(clearBtn){
       clearBtn.onclick = ()=>{ const key = currentLogKey(); if(key) clearLogsForKey(key); };
+    }
+
+    // 简单 Toast 提示
+    let _toastTimer = null;
+    function showToast(text, durationMs = 1400){
+      const el = document.getElementById('toast');
+      if(!el) return;
+      el.textContent = text;
+      el.classList.add('show');
+      if(_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, durationMs);
     }
 
     updateStatus();
