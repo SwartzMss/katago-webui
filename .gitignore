@@ -8,3 +8,7 @@ katago-cuda/
 backend/logs/*
 !backend/logs/.gitkeep
 
+# KataGo GTP logs (do not commit)
+backend/gtp_logs/*
+!backend/gtp_logs/.gitkeep
+
