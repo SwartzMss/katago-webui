@@ -153,6 +153,12 @@
     let heartbeatTimer = null;
     let stones = []; // {x:0..18, y:0..18, color:'black'|'white'}
     let playerColor = 'black';
+    let isStartingGame = false;
+    // 最近一步高亮（人类/AI）与 AI 脉冲动画
+    let lastHumanMove = null; // {x,y}
+    let lastAiMove = null;    // {x,y}
+    let aiPulseStartMs = 0;   // 动画起始时间
+    let rafId = null;
     function getSelectedLevel(){
       return levelSelect ? Number(levelSelect.value) : 2;
     }
@@ -206,6 +212,7 @@
       }
       drawStarPoints();
       drawStones();
+      drawMoveMarkers();
     }
 
     drawBoard();
@@ -243,6 +250,46 @@
         ctx.strokeStyle = '#00000022';
         ctx.stroke();
       }
+    }
+
+    function drawMoveMarkers(){
+      // 人类最近一步：细灰圈
+      if(lastHumanMove){
+        const cx = 32 + lastHumanMove.x*32;
+        const cy = 32 + lastHumanMove.y*32;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 17, 0, Math.PI*2);
+        ctx.strokeStyle = '#8c8c8c90';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      // AI 最近一步：脉冲红圈动画
+      if(lastAiMove){
+        const cx = 32 + lastAiMove.x*32;
+        const cy = 32 + lastAiMove.y*32;
+        const elapsed = Math.max(0, performance.now() - aiPulseStartMs);
+        const dur = 1200; // ms
+        const t = Math.min(elapsed / dur, 1);
+        const radius = 16 + 6 * (1 - t);
+        const alpha = 0.9 * (1 - t);
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(255, 77, 79, ${alpha.toFixed(3)})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        if(t < 1 && rafId === null){ rafId = requestAnimationFrame(animLoop); }
+      }
+    }
+
+    function animLoop(){
+      rafId = null;
+      drawBoard();
+      if(performance.now() - aiPulseStartMs < 1200){ rafId = requestAnimationFrame(animLoop); }
+    }
+
+    function triggerAiPulse(){
+      aiPulseStartMs = performance.now();
+      if(rafId === null){ rafId = requestAnimationFrame(animLoop); }
     }
 
     function updateStatus(){
@@ -335,6 +382,7 @@
 
     async function newGame(){
       try{
+        isStartingGame = true;
         const level = getSelectedLevel();
         const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
         const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
@@ -364,6 +412,8 @@
         if(coord){
           const r = applyMoveLocal(aiColor, coord.x, coord.y);
           if(r.captures>0){ caps[aiColor] += r.captures; updateCaps(); }
+          lastAiMove = { x: coord.x, y: coord.y };
+          triggerAiPulse();
         }
       }
       if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
@@ -373,6 +423,8 @@
       }catch(err){
         log('新开对局失败（网络错误）');
         if(startBtn) startBtn.disabled = false;
+      } finally {
+        isStartingGame = false;
       }
     }
 
@@ -396,6 +448,7 @@
     }
 
     board.addEventListener('click', async (e)=>{
+      if(isStartingGame){ alert('正在开局，请稍候…'); return; }
       if(!gameId){ alert('请先新开对局'); return; }
       if(isPlayingRequest){ return; }
       const rect = board.getBoundingClientRect();
@@ -417,6 +470,7 @@
         log('非法落子（自杀禁手），已阻止');
         return;
       }
+      lastHumanMove = { x: coord.x, y: coord.y };
       if(applied.captures>0){ caps[playerColor] += applied.captures; updateCaps(); log(`提子: ${applied.captures}`); }
       drawBoard();
 
@@ -443,6 +497,8 @@
         if(ai){
           const result = applyMoveLocal(aiColor, ai.x, ai.y);
           if(result.captures>0){ caps[aiColor] += result.captures; updateCaps(); log(`AI 提子: ${result.captures}`); }
+          lastAiMove = { x: ai.x, y: ai.y };
+          triggerAiPulse();
         }
         drawBoard();
         updateStatus();
