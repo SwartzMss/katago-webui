@@ -4,3 +4,7 @@ target/
 # KataGo 本地引擎与模型（不入库）
 katago-cuda/
 
+# Backend logs (do not commit)
+backend/logs/*
+!backend/logs/.gitkeep
+
