@@ -1,0 +1,99 @@
+2025-09-14 19:20:38+0800: Running with following config:
+allowResignation = true
+chosenMoveTemperatureEarly = 0.60
+chosenMoveTemperatureHalflife = 19
+lagBuffer = 1.0
+logAllGTPCommunication = true
+logDir = gtp_logs
+logSearchInfo = true
+logSearchInfoForChosenMove = false
+logToStderr = false
+maxTime = 1.00
+maxTimePondering = 60.0
+maxVisits = 600
+numSearchThreads = 6
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.90
+rootPolicyTemperature = 0.60
+rules = tromp-taylor
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+
+2025-09-14 19:20:38+0800: GTP Engine starting...
+2025-09-14 19:20:38+0800: KataGo v1.16.3
+2025-09-14 19:20:38+0800: Using TrompTaylor rules initially, unless GTP/GUI overrides this
+2025-09-14 19:20:38+0800: Using 6 CPU thread(s) for search
+2025-09-14 19:20:38+0800: nnRandSeed0 = 13026025440983861763
+2025-09-14 19:20:38+0800: After dedups: nnModelFile0 = ../katago-cuda/kata1-b18.bin.gz useFP16 auto useNHWC auto
+2025-09-14 19:20:38+0800: Initializing neural net buffer to be size 19 * 19 exactly
+2025-09-14 19:20:39+0800: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2025-09-14 19:20:39+0800: Cuda backend thread 0: Model version 14 useFP16 = true useNHWC = true
+2025-09-14 19:20:39+0800: Cuda backend thread 0: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-14 19:20:39+0800: Loaded neural net with nnXLen 19 nnYLen 19
+2025-09-14 19:20:39+0800: Initializing board with boardXSize 19 boardYSize 19
+2025-09-14 19:20:39+0800: Loaded config ../katago-cuda/default_gtp.cfg and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides
+2025-09-14 19:20:39+0800: Loaded model ../katago-cuda/kata1-b18.bin.gz
+2025-09-14 19:20:39+0800: Config override: maxVisits = 600
+2025-09-14 19:20:39+0800: Config override: maxTime = 1.00
+2025-09-14 19:20:39+0800: Config override: rootPolicyTemperature = 0.60
+2025-09-14 19:20:39+0800: Config override: chosenMoveTemperatureEarly = 0.60
+2025-09-14 19:20:39+0800: Config override: chosenMoveTemperatureHalflife = 19
+2025-09-14 19:20:39+0800: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-14 19:20:39+0800: GTP ready, beginning main protocol loop
+2025-09-14 19:20:39+0800: Controller: boardsize 19
+2025-09-14 19:20:39+0800: = 
+2025-09-14 19:20:39+0800: Controller: komi 6.5
+2025-09-14 19:20:39+0800: = 
+2025-09-14 19:20:39+0800: Controller: clear_board
+2025-09-14 19:20:39+0800: = 
+2025-09-14 19:21:51+0800: Controller: play B K10
+2025-09-14 19:21:51+0800: = 
+2025-09-14 19:21:51+0800: Controller: genmove W
+2025-09-14 19:21:52+0800: MoveNum: 1 HASH: 7BC546600F28A10FEF906A96B1D6386D
+   A B C D E F G H J K L M N O P Q R S T
+19 . . . . . . . . . . . . . . . . . . .
+18 . . . . . . . . . . . . . . . . . . .
+17 . . . . . . . . . . . . . . . . . . .
+16 . . . . . . . . . . . . . . . . . . .
+15 . . . . . . . . . . . . . . . . . . .
+14 . . . . . . . . . . . . . . . . . . .
+13 . . . . . . . . . . . . . . . . . . .
+12 . . . . . . . . . . . . . . . . . . .
+11 . . . . . . . . . . . . . . . . . . .
+10 . . . . . . . . . X1. . . . . . . . .
+ 9 . . . . . . . . . . . . . . . . . . .
+ 8 . . . . . . . . . . . . . . . . . . .
+ 7 . . . . . . . . . . . . . . . . . . .
+ 6 . . . . . . . . . . . . . . . . . . .
+ 5 . . . . . . . . . . . . . . . . . . .
+ 4 . . . @ . . . . . . . . . . . . . . .
+ 3 . . . . . . . . . . . . . . . . . . .
+ 2 . . . . . . . . . . . . . . . . . . .
+ 1 . . . . . . . . . . . . . . . . . . .
+
+koPOSITIONALscoreAREAtaxNONEsui1komi6.5
+Time taken: 0.760695
+Root visits: 605
+New playouts: 605
+NN rows: 572
+NN batches: 191
+NN avg batch size: 2.99476
+PV: C4 Q16 R4 C16 P4 E3 D5
+Tree:
+: T  -1.42c W  -1.34c S   0.12c ( +0.3 L  +0.3) N     605  --  C4 Q16 R4 C16 P4 E3 D5
+---White(^)---
+C4  : T  -0.83c W  -0.86c S   0.13c ( +0.3 L  +0.3) LCB   -1.60c P  4.24% WF 559.6 PSV    1065 N     229  --  C4 Q16 R4 C16 P4 E3 D5
+D4  : T  -1.18c W  -1.04c S   0.13c ( +0.3 L  +0.3) LCB   -1.91c P 12.63% WF 619.5 PSV     620 N     255  --  D4 Q16 D17 Q4 C14 C3 D3 C4
+D5  : T  -1.77c W  -1.60c S   0.16c ( +0.4 L  +0.3) LCB   -3.96c P  0.26% WF 128.5 PSV       4 N      60  --  D5 C3 E3 D4 E4 C5 D16 D7
+C3  : T  -4.54c W  -4.54c S  -0.01c ( +0.2 L  +0.3) LCB -354.54c P  0.27% WF   2.1 PSV       1 N       1  --  C3
+C5  : T  -3.23c W  -2.83c S   0.09c ( +0.3 L  +0.2) LCB  -12.03c P  0.15% WF  21.4 PSV       0 N       9  --  C5 Q4 D3 Q17
+C6  : T  -7.73c W  -7.53c S  -0.21c ( +0.0 L  +0.0) LCB -357.73c P  0.01% WF   1.7 PSV       0 N       1  --  C6
+D6  : T -11.27c W -10.82c S  -0.46c ( -0.2 L  -0.1) LCB -361.27c P  0.00% WF   1.1 PSV       0 N       1  --  D6
+D7  : T  -9.75c W  -9.51c S  -0.24c ( -0.0 L  -0.0) LCB -359.75c P  0.00% WF   1.2 PSV       0 N       1  --  D7
+C8  : T  -7.53c W  -7.46c S  -0.07c ( +0.1 L  +0.0) LCB -357.53c P  0.00% WF   1.4 PSV       0 N       1  --  C8
+C7  : T  -8.46c W  -8.30c S  -0.16c ( +0.1 L  +0.0) LCB -358.46c P  0.00% WF   1.3 PSV       0 N       1  --  C7
+
+2025-09-14 19:21:52+0800: = D4

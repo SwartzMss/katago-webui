@@ -13,6 +13,7 @@ use serde::Serialize;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::signal;
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_appender::rolling;
 // 从环境变量加载配置（含 .env / .env.local）；不覆盖已有进程变量
 fn load_env() {
     // 先尝试 backend 目录
@@ -33,6 +34,7 @@ struct AppState {
     game_store: Arc<dashmap::DashMap<String, GameState>>,      // gameId -> state
     game_ttl_seconds: i64,
     server_start_at: i64,
+    sid_locks: Arc<dashmap::DashMap<String, Arc<tokio::sync::Mutex<()>>>>, // 防止同一 sid 并发新建
 }
 
 impl FromRef<AppState> for Arc<dashmap::DashMap<String, Vec<String>>> {
@@ -67,9 +69,14 @@ struct EngineStatus {
 
 #[tokio::main]
 async fn main() {
-    // init tracing
+    // init tracing: console + 每日滚动文件日志
+    let log_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("logs");
+    let _ = std::fs::create_dir_all(&log_dir);
+    let file_appender = rolling::daily(&log_dir, "backend.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::registry()
         .with(fmt::layer().compact())
+        .with(fmt::layer().with_writer(non_blocking).with_ansi(false))
         .init();
 
     load_env();
@@ -85,6 +92,7 @@ async fn main() {
         game_store: Arc::new(dashmap::DashMap::new()),
         game_ttl_seconds,
         server_start_at: time::OffsetDateTime::now_utc().unix_timestamp(),
+        sid_locks: Arc::new(dashmap::DashMap::new()),
     });
     let state_for_cleaner = state.clone();
 
@@ -114,7 +122,7 @@ async fn main() {
             StatusCode::INTERNAL_SERVER_ERROR
         }))
         .layer(cors)
-        .with_state(state);
+        .with_state(state.clone());
 
     let addr: SocketAddr = SocketAddr::from(([0,0,0,0], port));
     tracing::info!(%addr, "starting server");
@@ -157,14 +165,13 @@ async fn main() {
         .unwrap();
 
     // 服务退出后，清理剩余引擎子进程（尽力而为）
-    let engines: Vec<_> = state
-        .game_store
-        .iter()
-        .filter_map(|kv| kv.engine.clone())
-        .collect();
-    for e in engines {
-        let _ = e.quit().await;
+    let mut engines: Vec<std::sync::Arc<engine::gtp::GtpEngine>> = Vec::new();
+    for entry in state.game_store.iter() {
+        if let Some(e) = entry.value().engine.clone() {
+            engines.push(e);
+        }
     }
+    for e in engines { let _ = e.quit().await; }
 }
 
 async fn shutdown_signal() {
@@ -245,6 +252,14 @@ async fn game_new(
     maybe_body: Option<Json<NewGameRequest>>,
 ) -> impl IntoResponse {
     let (sid, set_cookie) = get_or_create_sid(headers);
+
+    // per-sid 互斥，防止同时点多次“新开对局”导致重复启动引擎
+    let lock = state
+        .sid_locks
+        .entry(sid.clone())
+        .or_insert_with(|| Arc::new(tokio::sync::Mutex::new(())))
+        .clone();
+    let _guard = lock.lock().await;
 
     let active = state
         .session_store

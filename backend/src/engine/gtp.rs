@@ -23,6 +23,7 @@ impl GtpEngine {
             .stderr(Stdio::inherit());
 
         let mut child = cmd.spawn().context("failed to spawn katago gtp")?;
+        if let Some(id) = child.id() { tracing::info!(pid=%id, "katago spawned"); }
         let stdin = child
             .stdin
             .take()
@@ -81,12 +82,14 @@ impl GtpEngine {
         let mut child = self.child.lock().await;
         match timeout(Duration::from_secs(3), child.wait()).await {
             Ok(_status) => {
+                if let Some(id) = child.id() { tracing::info!(pid=%id, "katago exited"); }
                 return Ok(());
             }
             Err(_) => {
                 // 超时，强制杀死
                 let _ = child.kill().await;
                 let _ = child.wait().await; // reap
+                if let Some(id) = child.id() { tracing::warn!(pid=%id, "katago killed after timeout"); }
                 return Ok(());
             }
         }

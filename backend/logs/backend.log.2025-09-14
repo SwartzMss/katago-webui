@@ -1,0 +1,35 @@
+2025-09-14T09:17:10.173882Z  INFO backend: starting server addr=0.0.0.0:8080
+2025-09-14T09:17:20.479716Z TRACE axum::serve: connection 127.0.0.1:51078 accepted
+2025-09-14T09:17:20.480381Z TRACE axum::serve: connection 127.0.0.1:51092 accepted
+2025-09-14T09:17:34.322200Z  INFO backend::engine::gtp: katago spawned pid=124154
+2025-09-14T09:18:20.902240Z TRACE axum::serve: connection 127.0.0.1:51092 closed
+2025-09-14T09:24:15.705582Z TRACE axum::serve: connection 127.0.0.1:47162 accepted
+2025-09-14T09:24:20.363085Z  INFO backend::engine::gtp: katago spawned pid=124626
+2025-09-14T09:30:07.237551Z TRACE axum::serve: connection 127.0.0.1:48970 accepted
+2025-09-14T09:35:56.795878Z TRACE axum::serve: connection 127.0.0.1:47162 closed
+2025-09-14T09:35:56.796134Z TRACE axum::serve: connection 127.0.0.1:48970 closed
+2025-09-14T09:42:47.707863Z TRACE axum::serve: connection 127.0.0.1:51078 closed
+2025-09-14T09:42:50.846755Z TRACE axum::serve: connection 127.0.0.1:54956 accepted
+2025-09-14T10:12:47.278513Z TRACE axum::serve: connection 127.0.0.1:54956 closed
+2025-09-14T10:12:50.575218Z TRACE axum::serve: connection 127.0.0.1:34732 accepted
+2025-09-14T10:42:46.570559Z TRACE axum::serve: connection 127.0.0.1:34732 closed
+2025-09-14T10:42:52.078014Z TRACE axum::serve: connection 127.0.0.1:35710 accepted
+2025-09-14T11:12:47.313880Z TRACE axum::serve: connection 127.0.0.1:35710 closed
+2025-09-14T11:13:30.963443Z TRACE axum::serve: connection 127.0.0.1:45762 accepted
+2025-09-14T11:19:50.652783Z  INFO backend: shutdown signal received
+2025-09-14T11:19:50.652860Z TRACE axum::serve: received graceful shutdown signal. Telling tasks to shutdown
+2025-09-14T11:19:50.652948Z TRACE axum::serve: signal received in task, starting graceful shutdown
+2025-09-14T11:19:50.652985Z TRACE axum::serve: signal received, not accepting new connections
+2025-09-14T11:19:50.653077Z TRACE axum::serve: waiting for 1 task(s) to finish
+2025-09-14T11:19:50.653111Z TRACE axum::serve: connection 127.0.0.1:45762 closed
+2025-09-14T11:19:54.615575Z  INFO backend: starting server addr=0.0.0.0:8080
+2025-09-14T11:20:26.537785Z TRACE axum::serve: connection 127.0.0.1:38278 accepted
+2025-09-14T11:20:26.538545Z TRACE axum::serve: connection 127.0.0.1:38292 accepted
+2025-09-14T11:20:38.061434Z  INFO backend::engine::gtp: katago spawned pid=131391
+2025-09-14T11:21:31.364700Z TRACE axum::serve: connection 127.0.0.1:38292 closed
+2025-09-14T11:30:32.030734Z TRACE axum::serve: connection 127.0.0.1:57866 accepted
+2025-09-14T11:39:30.873904Z TRACE axum::serve: connection 127.0.0.1:57866 closed
+2025-09-14T11:41:32.236809Z TRACE axum::serve: connection 127.0.0.1:51404 accepted
+2025-09-14T11:42:47.394557Z TRACE axum::serve: connection 127.0.0.1:51404 closed
+2025-09-14T11:42:47.394589Z TRACE axum::serve: connection 127.0.0.1:38278 closed
+2025-09-14T11:43:30.951684Z TRACE axum::serve: connection 127.0.0.1:56710 accepted
