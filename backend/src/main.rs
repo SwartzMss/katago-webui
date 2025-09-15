@@ -291,13 +291,22 @@ async fn game_new(
                 args.push("-override-config".to_string());
                 args.push(format!("{}={}", k, v));
             }
+            // 规则 → 覆盖配置（默认 chinese）
+            let rule_name = req.and_then(|r| r.rules.clone()).unwrap_or_else(|| "chinese".to_string());
+            args.push("-override-config".to_string());
+            args.push(format!("rules={}", rule_name));
             match engine::gtp::GtpEngine::start(&engine_path, &args).await {
                 Ok(e) => {
                     // 初始化棋盘参数
                     let board_size = req.and_then(|r| r.boardSize).unwrap_or(19);
-                    let komi = req.and_then(|r| r.komi).unwrap_or(6.5);
+                    let komi_req = req.and_then(|r| r.komi).unwrap_or(6.5);
+                    let rule_name = req
+                        .and_then(|r| r.rules.clone())
+                        .unwrap_or_else(|| "chinese".to_string());
+                    // 规则化 komi：Chinese 默认 7.5；其他沿用传入/默认值
+                    let effective_komi: f32 = if rule_name.eq_ignore_ascii_case("chinese") { 7.5 } else { komi_req };
                     let _ = e.send_command(&format!("boardsize {}", board_size)).await;
-                    let _ = e.send_command(&format!("komi {}", komi)).await;
+                    let _ = e.send_command(&format!("komi {}", effective_komi)).await;
                     let _ = e.send_command("clear_board").await;
                     Some(e)
                 }
@@ -450,23 +459,66 @@ fn parse_gtp_move(resp: &str) -> String {
 }
 
 fn overrides_for_level(level: u8) -> Vec<(&'static str, String)> {
-    // 5 档映射：访问/时间 + 随机性（根温度 & 选点温度-前期）
-    let (visits, time_sec, root_temp) = match level {
-        1 => (80, 0.3, 1.3),
-        2 => (200, 0.5, 0.9),
-        3 => (600, 1.0, 0.6),
-        4 => (2000, 2.0, 0.3),
-        _ => (8000, 4.0, 0.0),
+    // 更细分的 5 档难度：搜索预算 + 随机性 + 认输策略
+    // 目标：低档更友好/更有趣（更随机、不轻易认输），高档更强/求最优
+    let (visits, time_sec, root_temp, chosen_early, chosen_halflife, allow_resign, resign_threshold) = match level {
+        1 => (
+            80,    // 搜索访问数
+            0.35,  // 时间上限（秒）
+            1.6,   // 根温度：更活泼
+            0.95,  // 前期选点温度：更随机
+            30,    // 温度衰减半衰期（手数）更长
+            false, // 不允许认输
+            -0.99, // 阈值占位（无效，因为不允许认输）
+        ),
+        2 => (
+            220,
+            0.55,
+            1.1,
+            0.8,
+            26,
+            false,
+            -0.99,
+        ),
+        3 => (
+            650,
+            1.1,
+            0.6,
+            0.6,
+            19,
+            true,
+            -0.97, // 不要太早投降
+        ),
+        4 => (
+            2200,
+            2.2,
+            0.25,
+            0.35,
+            15,
+            true,
+            -0.93,
+        ),
+        _ => (
+            9000,
+            4.5,
+            0.0,
+            0.0,
+            0,
+            true,
+            -0.9,  // 高难度更接近默认
+        ),
     };
-    // 使用新版参数：开局阶段给一点随机性
-    let chosen_move_temp_early = 0.6_f32; // 建议值
-    let chosen_move_temp_halflife = 19_u32; // 建议值（约 19 手后衰减一半）
 
-    vec![
+    let mut v = vec![
         ("maxVisits", visits.to_string()),
         ("maxTime", format!("{:.2}", time_sec)),
         ("rootPolicyTemperature", format!("{:.2}", root_temp)),
-        ("chosenMoveTemperatureEarly", format!("{:.2}", chosen_move_temp_early)),
-        ("chosenMoveTemperatureHalflife", chosen_move_temp_halflife.to_string()),
-    ]
+        ("chosenMoveTemperatureEarly", format!("{:.2}", chosen_early)),
+        ("chosenMoveTemperatureHalflife", chosen_halflife.to_string()),
+        ("allowResignation", allow_resign.to_string()),
+    ];
+    if allow_resign {
+        v.push(("resignThreshold", format!("{:.2}", resign_threshold)));
+    }
+    v
 }

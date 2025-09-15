@@ -99,8 +99,9 @@ echo -e "version\nquit\n" | "$ENGINE_PATH" gtp -model "$MODEL_PATH" -config "$GT
 - 端口占用：设置 `PORT` 改端口
 - 安全：`gameId` 绑定当前 sid，跨会话访问会被拒绝（后续完善）
 - 心跳与清理：前端默认每 15 秒发送 `/api/game/heartbeat`；后端每 60 秒清理超时对局，超时时长由 `GAME_TTL_MINUTES` 控制，无需单独配置心跳间隔。
+ - Komi：在 Chinese 规则下默认设为 7.5；其他规则沿用传入值。
 
 ## 路线图
-- 将 5 档难度映射到 GTP 参数（maxVisits/maxTime/温度/噪声）
+- 难度分层：映射到 KataGo 覆盖参数（maxVisits/maxTime/温度/选点温度/认输策略）
 - 悔棋/认输完善、落子合法性与坐标/规则细化
 - 进程关停与异常恢复更健壮（TERM/KILL 时序）

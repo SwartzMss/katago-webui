@@ -399,7 +399,7 @@
       try{
         isStartingGame = true;
         const level = getSelectedLevel();
-        const body = { boardSize: 19, rules: 'japanese', komi: 6.5, handicap: 0, engineLevel: Number(level), playerColor };
+        const body = { boardSize: 19, rules: 'chinese', komi: 6.5, engineLevel: Number(level), playerColor };
         const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
         if(res.status === 429){
           const j = await res.json();
