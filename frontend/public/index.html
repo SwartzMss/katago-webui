@@ -141,6 +141,8 @@
     const startBtn = document.getElementById('startBtn');
     const debugSwitch = document.getElementById('debugSwitch');
     const resignBtn = document.getElementById('resign');
+    const avatarYouEl = document.querySelector('.avatar.you');
+    const avatarAiEl = document.querySelector('.avatar.ai');
     // 日志显示改由调试模式开关控制
 
     const LOGS_KEY = 'katago_logs_v1';
@@ -186,6 +188,13 @@
     });
     let isPlayingRequest = false;
     let caps = { black: 0, white: 0 };
+
+    // 轮到谁下：高亮对应头像
+    function setTurn(who){
+      // who: 'you' | 'ai' | null
+      if(avatarYouEl){ avatarYouEl.classList.toggle('turn', who === 'you'); }
+      if(avatarAiEl){ avatarAiEl.classList.toggle('turn', who === 'ai'); }
+    }
 
     function updateCaps(){
       // 我执黑则我=black；我执白则我=white
@@ -400,6 +409,8 @@
         isStartingGame = true;
         const level = getSelectedLevel();
         const body = { boardSize: 19, rules: 'chinese', komi: 6.5, engineLevel: Number(level), playerColor };
+        // 开局前先提示将由谁先手
+        setTurn(playerColor === 'black' ? 'you' : 'ai');
         const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
         if(res.status === 429){
           const j = await res.json();
@@ -435,6 +446,8 @@
       if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
       startHeartbeat();
       drawBoard();
+      // 无论是否有 AI 先手，处理完后轮到你
+      setTurn('you');
       }catch(err){
         log('新开对局失败（网络错误）');
         showToast('新开对局失败（网络错误）');
@@ -490,6 +503,8 @@
       lastHumanMove = { x: coord.x, y: coord.y };
       if(applied.captures>0){ caps[playerColor] += applied.captures; updateCaps(); log(`提子: ${applied.captures}`); }
       drawBoard();
+      // 你已落子，轮到 AI
+      setTurn('ai');
 
       isPlayingRequest = true;
       try{
@@ -498,6 +513,8 @@
           showToast('对局已过期');
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
+          // 回退你的棋，仍轮到你
+          setTurn('you');
           return;
         }
         if(!res.ok){
@@ -505,6 +522,8 @@
           showToast('落子失败');
           stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
           drawBoard();
+          // 回退你的棋，仍轮到你
+          setTurn('you');
           return;
         }
         const j = await res.json();
@@ -519,11 +538,15 @@
           triggerAiPulse();
         }
         drawBoard();
+        // AI 行棋完成，轮到你
+        setTurn('you');
       }catch(err){
         log('网络错误：' + err);
         showToast('网络错误');
         stones = stones.filter(s => !(s.x===coord.x && s.y===coord.y && s.color===playerColor));
         drawBoard();
+        // 回退你的棋，仍轮到你
+        setTurn('you');
       }finally{
         isPlayingRequest = false;
       }
@@ -567,6 +590,8 @@
       caps = {black:0, white:0};
       updateCaps();
       drawBoard();
+      // 对局结束，取消高亮
+      setTurn(null);
     };
 
     // 清空当前对局日志
@@ -587,6 +612,8 @@
     }
 
     updateCaps();
+    // 初始无对局，取消高亮
+    setTurn(null);
 
     // 页面关闭/离开时，自动关闭当前对局，避免活动局残留
     function closeGameOnUnload(){
