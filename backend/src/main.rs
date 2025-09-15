@@ -14,17 +14,11 @@ use std::{net::SocketAddr, sync::Arc};
 use tokio::signal;
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 use tracing_appender::rolling;
-// 从环境变量加载配置（含 .env / .env.local）；不覆盖已有进程变量
+// 从环境变量加载配置（仅 backend/.env）；不覆盖已有进程变量
 fn load_env() {
-    // 先尝试 backend 目录
-    let _ = dotenvy::from_filename(".env.local");
-    let _ = dotenvy::dotenv();
-    // 再尝试仓库根目录（backend 的上一级）
+    // 明确加载 backend 目录下的 .env，避免因工作目录不同而读取到仓库根 .env
     let backend_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    if let Some(root) = backend_dir.parent() {
-        let _ = dotenvy::from_filename(root.join(".env.local"));
-        let _ = dotenvy::from_filename(root.join(".env"));
-    }
+    let _ = dotenvy::from_filename(backend_dir.join(".env"));
 }
 
 #[derive(Clone)]

@@ -42,9 +42,8 @@ Type=simple
 User=$RUN_USER
 WorkingDirectory=$REPO_DIR
 Environment=RUST_LOG=info
-# Optional env files
+# Env file (only backend/.env)
 EnvironmentFile=-$BACKEND_DIR/.env
-EnvironmentFile=-$REPO_DIR/.env
 ExecStart=$BIN_PATH
 Restart=on-failure
 RestartSec=3
@@ -61,5 +60,4 @@ echo "[4/4] Service status (short):"
 systemctl --no-pager --full status "$UNIT_NAME" | sed -n '1,40p'
 
 echo "\nInstalled. Logs: journalctl -u $UNIT_NAME -f"
-
 

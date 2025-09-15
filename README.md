@@ -17,7 +17,7 @@ frontend/
 ```
 
 ## 环境变量（.env）
-- 在仓库根目录创建 `.env`（或复制 `.env.example`）：
+- 仅读取 `backend/.env`（不读取仓库根 `.env`）。
 ```
 PORT=8080
 CONCURRENCY_PER_SID=3
@@ -28,7 +28,7 @@ GTP_CONFIG_PATH=/home/swartz/WorkSpace/katago-webui/katago-cuda/default_gtp.cfg
 no_proxy=localhost,127.0.0.1,::1
 NO_PROXY=localhost,127.0.0.1,::1
 ```
-> 进程真实环境变量 > `.env.local` > `.env`，代码在启动时自动加载；生产建议用系统环境变量。
+> 生效优先级：进程真实环境变量 > `backend/.env`。代码启动时自动加载；生产建议使用系统环境变量或 systemd `EnvironmentFile`。
 
 ## 运行
 1) 安装 Rust（若未安装）
@@ -48,7 +48,7 @@ RUST_LOG=info cargo run
 ## 自启动安装（systemd）
 提供一键安装/卸载脚本，适用于大多数 Linux（基于 systemd）。
 
-前置：确保已安装 Rust，并在仓库根目录 `.env` 配置好引擎路径与端口。
+前置：确保已安装 Rust，并在 `backend/.env` 配置好引擎路径与端口。
 
 安装并开机自启（首次安装会自动构建并立即启动）：
 ```bash
@@ -77,7 +77,7 @@ sudo ./scripts/uninstall-service.sh
 说明：
 - 单元文件位置：`/etc/systemd/system/katago-webui.service`
 - 以当前 sudo 调用者身份运行（自动识别 `$SUDO_USER`）
-- 读取环境：`backend/.env` 与仓库根 `.env`（若存在）
+- 读取环境：仅 `backend/.env`
 
 ## 配置 KataGo（可选）
 - 路径在 `.env` 中配置（未配置则使用占位应手）。
