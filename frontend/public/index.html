@@ -219,7 +219,9 @@
       ctx.clearRect(0,0,640,640);
       ctx.fillStyle = '#f3c98b';
       ctx.fillRect(0,0,640,640);
+      // 固定网格线宽，避免被上一次标记环(lineWidth=2/3)影响
       ctx.strokeStyle = '#444';
+      ctx.lineWidth = 1;
       for(let i=0;i<19;i++){
         const p = 32 + i * 32; // 19线*间距32≈576，边距各32
         ctx.beginPath(); ctx.moveTo(32, p); ctx.lineTo(608, p); ctx.stroke();
