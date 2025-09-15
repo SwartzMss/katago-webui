@@ -6,7 +6,7 @@
 - 难度星级：5 档（1★–5★，服务端映射为访问/时间/温度参数；占位待接入）
 - 会话并发：同一 sid 同时最多 3 局，第 4 局 429
 - 自动回收：30 分钟无活动自动关闭对局
-- 仅 HTTP：/api/game/* 与 /api/engine/status；静态托管前端
+- 仅 HTTP：/api/game/*；静态托管前端
 
 ## 目录结构
 ```
@@ -91,8 +91,6 @@ echo -e "version\nquit\n" | "$ENGINE_PATH" gtp -model "$MODEL_PATH" -config "$GT
 - `POST /api/game/play` → 200 `{ engineMove, captures, end }`（占位或真引擎）
 - `POST /api/game/heartbeat` → 204（保持活跃）
 - `POST /api/game/close` → 204（释放资源）
-- `GET /api/engine/status` → 200（在线/当前 sid 活动局数/并发上限/运行时长）
-- `GET /healthz|/readyz` → 200（存活/就绪）
 
 ## 注意
 - 代理导致 502：调用本机请使用 `--noproxy localhost` 或设置 `NO_PROXY`

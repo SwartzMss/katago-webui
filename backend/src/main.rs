@@ -4,7 +4,7 @@ use axum::{
     extract::{FromRef, State},
     http::{HeaderMap, HeaderValue, Method, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::post,
     Json, Router,
 };
 use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
@@ -51,15 +51,6 @@ struct GameState {
     human_color: String, // "black" or "white"
 }
 
-#[derive(Serialize)]
-struct EngineStatus {
-    online: bool,
-    model: String,
-    activeGames: u32,
-    concurrencyLimitPerSid: u32,
-    serverUptimeSec: u64,
-    version: String,
-}
 
 #[tokio::main]
 async fn main() {
@@ -100,9 +91,6 @@ async fn main() {
         .allow_headers(Any);
 
     let api = Router::new()
-        .route("/healthz", get(healthz))
-        .route("/readyz", get(readyz))
-        .route("/api/engine/status", get(engine_status))
         .route("/api/game/new", post(game_new))
         .route("/api/game/play", post(game_play))
         .route("/api/game/heartbeat", post(game_heartbeat))
@@ -195,33 +183,6 @@ async fn shutdown_signal() {
     tracing::info!("shutdown signal received");
 }
 
-async fn healthz() -> impl IntoResponse {
-    StatusCode::OK
-}
-
-async fn readyz() -> impl IntoResponse {
-    // MVP: 直接返回就绪；后续可检测模型/二进制存在等
-    StatusCode::OK
-}
-
-async fn engine_status(State(state): State<Arc<AppState>>, headers: HeaderMap) -> impl IntoResponse {
-    let (sid, _set_cookie) = get_or_create_sid(headers);
-    let active_for_sid: u32 = state
-        .session_store
-        .get(&sid)
-        .map(|v| v.len() as u32)
-        .unwrap_or(0);
-    let now = time::OffsetDateTime::now_utc().unix_timestamp();
-    let body = EngineStatus {
-        online: true,
-        model: "unknown".to_string(),
-        activeGames: active_for_sid,
-        concurrencyLimitPerSid: state.concurrency_limit_per_sid,
-        serverUptimeSec: (now - state.server_start_at) as u64,
-        version: "mvp-0.1.0".to_string(),
-    };
-    (StatusCode::OK, Json(body))
-}
 
 // --- Game routes (stubs) ---
 #[derive(Serialize)]

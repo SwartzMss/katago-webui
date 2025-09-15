@@ -307,10 +307,7 @@
       if(rafId === null){ rafId = requestAnimationFrame(animLoop); }
     }
 
-    function updateStatus(){
-      // status hidden in header; keep call lightweight or remove if unnecessary
-      // fetch('/api/engine/status').catch(()=>{});
-    }
+    // engine status UI/functionality removed
 
     function moveToCoord(mv){
       if(!mv || mv === 'pass' || mv === 'resign') return null;
@@ -434,7 +431,6 @@
       }
       if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
       startHeartbeat();
-      updateStatus();
       drawBoard();
       }catch(err){
         log('新开对局失败（网络错误）');
@@ -520,7 +516,6 @@
           triggerAiPulse();
         }
         drawBoard();
-        updateStatus();
       }catch(err){
         log('网络错误：' + err);
         showToast('网络错误');
@@ -568,7 +563,6 @@
       stones = [];
       caps = {black:0, white:0};
       updateCaps();
-      updateStatus();
       drawBoard();
     };
 
@@ -589,7 +583,6 @@
       _toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, durationMs);
     }
 
-    updateStatus();
     updateCaps();
 
     // 页面关闭/离开时，自动关闭当前对局，避免活动局残留
