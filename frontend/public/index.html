@@ -143,6 +143,7 @@
     const resignBtn = document.getElementById('resign');
     const avatarYouEl = document.querySelector('.avatar.you');
     const avatarAiEl = document.querySelector('.avatar.ai');
+    const colorButtons = colorToggle ? Array.from(colorToggle.querySelectorAll('button')) : [];
     // 日志显示改由调试模式开关控制
 
     const LOGS_KEY = 'katago_logs_v1';
@@ -194,6 +195,12 @@
       // who: 'you' | 'ai' | null
       if(avatarYouEl){ avatarYouEl.classList.toggle('turn', who === 'you'); }
       if(avatarAiEl){ avatarAiEl.classList.toggle('turn', who === 'ai'); }
+    }
+
+    // 开局后禁用“执子/难度”选择，结束后恢复
+    function setPreGameControlsDisabled(disabled){
+      if(levelSelect){ levelSelect.disabled = disabled; }
+      if(colorButtons && colorButtons.length){ colorButtons.forEach(b=> b.disabled = disabled); }
     }
 
     function updateCaps(){
@@ -411,17 +418,21 @@
         const body = { boardSize: 19, rules: 'chinese', komi: 6.5, engineLevel: Number(level), playerColor };
         // 开局前先提示将由谁先手
         setTurn(playerColor === 'black' ? 'you' : 'ai');
+        // 一旦发起开局，禁用执子和难度
+        setPreGameControlsDisabled(true);
         const res = await fetch('/api/game/new', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
         if(res.status === 429){
           const j = await res.json();
           showToast(`过载：${j.message}`);
           if(startBtn) startBtn.disabled = false;
+          setPreGameControlsDisabled(false);
           return;
         }
         if(!res.ok){
           log(`新开对局失败（${res.status}）`);
           showToast(`新开对局失败（${res.status}）`);
           if(startBtn) startBtn.disabled = false;
+          setPreGameControlsDisabled(false);
           return;
         }
         const j = await res.json();
@@ -452,6 +463,7 @@
         log('新开对局失败（网络错误）');
         showToast('新开对局失败（网络错误）');
         if(startBtn) startBtn.disabled = false;
+        setPreGameControlsDisabled(false);
       } finally {
         isStartingGame = false;
       }
@@ -592,6 +604,8 @@
       drawBoard();
       // 对局结束，取消高亮
       setTurn(null);
+      // 恢复赛前可配置项
+      setPreGameControlsDisabled(false);
     };
 
     // 清空当前对局日志
@@ -614,6 +628,8 @@
     updateCaps();
     // 初始无对局，取消高亮
     setTurn(null);
+    // 初始允许修改赛前选项
+    setPreGameControlsDisabled(false);
 
     // 页面关闭/离开时，自动关闭当前对局，避免活动局残留
     function closeGameOnUnload(){
