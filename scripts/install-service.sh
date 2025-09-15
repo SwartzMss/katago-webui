@@ -54,10 +54,18 @@ EOF
 
 echo "[3/4] Reloading systemd and enabling service ..."
 systemctl daemon-reload
-systemctl enable --now "$UNIT_NAME"
+systemctl enable "$UNIT_NAME"
+
+# Ensure the latest build is picked up: restart if active, else start
+if systemctl is-active --quiet "$UNIT_NAME"; then
+  echo "Service is running; restarting to apply new build ..."
+  systemctl restart "$UNIT_NAME"
+else
+  echo "Service not running; starting ..."
+  systemctl start "$UNIT_NAME"
+fi
 
 echo "[4/4] Service status (short):"
 systemctl --no-pager --full status "$UNIT_NAME" | sed -n '1,40p'
 
 echo "\nInstalled. Logs: journalctl -u $UNIT_NAME -f"
-
