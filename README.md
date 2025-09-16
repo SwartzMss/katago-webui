@@ -43,7 +43,7 @@ RUST_LOG=info cargo run
 ```
 3) 打开前端
 - 浏览器访问：`http://localhost:8080/`
-- 点击“新开对局”，在棋盘点击即可触发 `/api/game/play`
+- 点击“开始”，在棋盘点击即可触发 `/api/game/play`
 
 ## 自启动安装（systemd）
 提供一键安装/卸载脚本，适用于大多数 Linux（基于 systemd）。
@@ -98,6 +98,8 @@ echo -e "version\nquit\n" | "$ENGINE_PATH" gtp -model "$MODEL_PATH" -config "$GT
 - 安全：`gameId` 绑定当前 sid，跨会话访问会被拒绝（后续完善）
 - 心跳与清理：前端默认每 15 秒发送 `/api/game/heartbeat`；后端每 60 秒清理超时对局，超时时长由 `GAME_TTL_MINUTES` 控制，无需单独配置心跳间隔。
  - Komi：在 Chinese 规则下默认设为 7.5；其他规则沿用传入值。
+
+补充：前端当前默认采用暖色（Sepia）主题以提升视觉舒适度，不影响交互与 API。
 
 ## 路线图
 - 难度分层：映射到 KataGo 覆盖参数（maxVisits/maxTime/温度/选点温度/认输策略）
