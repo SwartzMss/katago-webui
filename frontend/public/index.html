@@ -5,28 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KataGo Web 对局 MVP</title>
   <style>
-    :root { --primary:#1677ff; --border:#eee; --text:#333; --panel-bg:#fff; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; color: var(--text); }
-    header { padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: center; align-items: center; font-weight:600; }
-    main { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }
-    #board { width: 640px; height: 640px; background: #f3c98b; border: 1px solid #ccc; position: relative; }
+    /* Sepia theme variables (warm paper-like) */
+    :root {
+      --bg: #F6F2E7;
+      --panel-bg: #F9F6EE;
+      --text: #3B3A36;
+      --muted: #6B6A65;
+      --border: #E4DED0;
+      --primary: #2E7D6B; /* warm blue-green */
+      /* Board */
+      --board-bg: #E6D6B5;
+      --grid: #5F5A52;
+      --star: #4C463F;
+      /* Accents */
+      --accent-amber: rgba(245, 158, 11, 0.45);
+      --toast-bg: rgba(60, 52, 40, 0.92);
+      --log-bg: #F3EEE3;
+    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; color: var(--text); background: var(--bg); font-size: 16px; line-height: 1.5; }
+    header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: center; align-items: center; font-weight:600; }
+    main { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 18px; }
+    #board { width: 640px; height: 640px; background: var(--board-bg); border: 1px solid var(--border); position: relative; }
     #boardWrap { }
-    #controlsPanel { position: static; display: grid; grid-template-columns: 1fr 1fr 1fr; justify-content: center; column-gap: 16px; row-gap: 10px; width: 640px; max-width: 90vw; background: var(--panel-bg); box-shadow: 0 1px 3px #0000000f; border: 1px solid var(--border); border-radius: 10px; padding-top: 8px; padding-bottom: 8px; }
-    #controlsPanel .row { display: flex; align-items: center; gap: 8px; }
+    #controlsPanel { position: static; display: grid; grid-template-columns: 1fr 1fr 1fr; justify-content: center; column-gap: 16px; row-gap: 12px; width: 640px; max-width: 90vw; background: var(--panel-bg); box-shadow: 0 1px 3px #0000000f; border: 1px solid var(--border); border-radius: 10px; padding-top: 10px; padding-bottom: 10px; }
+    #controlsPanel .row { display: flex; align-items: center; gap: 10px; }
     #controlsPanel .row.center { justify-content: center; }
-    #controlsPanel .label { min-width: 48px; text-align: right; color: #333; }
+    #controlsPanel .label { min-width: 48px; text-align: right; color: var(--text); }
     #controlsPanel .span-3 { grid-column: 1 / -1; }
     /* 难度选择框 */
-    select#levelSelect { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+    select#levelSelect { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
     /* 执方开关 */
-    .toggle { display: inline-flex; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
-    .toggle button { padding: 8px 12px; border: 0; background: #fff; cursor: pointer; }
+    .toggle { display: inline-flex; border: 1px solid #D6CEBE; border-radius: 10px; overflow: hidden; }
+    .toggle button { padding: 10px 14px; border: 0; background: #fff; cursor: pointer; color: var(--text); }
     .toggle button.active { background: var(--primary); color: #fff; }
     /* 头像 */
-    .avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background:#f0f2f5; border:1px solid var(--border); font-weight: 600; color:#555; box-shadow: 0 1px 2px #0000000a; transition: transform .18s ease, box-shadow .18s ease; }
-    .avatar.you { background:#e6f4ff; color:#1677ff; }
-    .avatar.ai { background:#fff7e6; color:#fa8c16; }
-    .avatar.turn { transform: scale(1.22); box-shadow: 0 0 0 3px rgba(22,119,255,0.18), 0 2px 8px rgba(0,0,0,0.12); }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background:#F0ECE1; border:1px solid var(--border); font-weight: 600; color:#595854; box-shadow: 0 1px 2px #0000000a; transition: transform .18s ease, box-shadow .18s ease; }
+    .avatar.you { background:#EDEFE5; color:#2E7D6B; }
+    .avatar.ai { background:#F7EEE0; color:#B46A00; }
+    .avatar.turn { transform: scale(1.22); box-shadow: 0 0 0 3px rgba(46,125,107,0.18), 0 2px 8px rgba(0,0,0,0.12); }
     .avatar-box { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:12px; color:#666; }
     .meta { display:flex; align-items:center; gap:6px; }
     .color-dot { width:10px; height:10px; border-radius:50%; display:inline-block; border:1px solid #999; }
@@ -34,8 +50,8 @@
     .color-dot.white { background:#fff; border-color:#999; }
     .btn-group { display:inline-flex; gap:10px; }
     /* 按钮 */
-    .btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; transition: all .15s ease; }
-    .btn:hover { box-shadow: 0 2px 6px #00000014; }
+    .btn { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: background-color .15s ease, filter .15s ease; }
+    .btn:hover { filter: brightness(1.02); }
     .btn-primary { background: var(--primary); color:#fff; border-color: var(--primary); }
     .btn-primary:hover { filter: brightness(1.05); }
     .btn[disabled] { opacity: .6; cursor: not-allowed; }
@@ -48,18 +64,18 @@
     .switch input:checked + .slider { background: var(--primary); }
     .switch input:checked + .slider::before { transform: translateX(18px); }
     #logsPanel { width: 640px; max-width: 90vw; }
-    .panel { border: 1px solid #eee; padding: 12px; border-radius: 8px; background: var(--panel-bg); }
+    .panel { border: 1px solid var(--border); padding: 14px; border-radius: 10px; background: var(--panel-bg); }
     .row { margin-bottom: 8px; }
     button { padding: 6px 12px; }
-    #log { height: 180px; overflow: auto; background: #fafafa; border: 1px solid #eee; padding: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; resize: vertical; }
-    .caps { font-size: 13px; color:#333; }
+    #log { height: 180px; overflow: auto; background: var(--log-bg); border: 1px solid var(--border); padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.5; resize: vertical; color: var(--text); }
+    .caps { font-size: 13px; color: var(--muted); }
     
   </style>
 </head>
 <body>
   <!-- 居中提示浮层 -->
   <style>
-    #toast { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.98); background: rgba(0,0,0,0.85); color:#fff; padding: 10px 16px; border-radius: 10px; box-shadow: 0 6px 20px #00000033; opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 9999; font-size:14px; }
+    #toast { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.98); background: var(--toast-bg); color:#FDFBF6; padding: 10px 16px; border-radius: 10px; box-shadow: 0 6px 20px #0000001f; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; z-index: 9999; font-size:14px; }
     #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   </style>
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -133,6 +149,7 @@
     const statusEl = null; // header no longer shows status
     const board = document.getElementById('board');
     const ctx = board.getContext('2d');
+    const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const capMeEl = document.getElementById('capMe');
     const capAIEl = document.getElementById('capAI');
     const logsPanel = document.getElementById('logsPanel');
@@ -234,10 +251,12 @@
 
     function drawBoard(){
       ctx.clearRect(0,0,640,640);
-      ctx.fillStyle = '#f3c98b';
+      const boardBg = cssVar('--board-bg') || '#E6D6B5';
+      const grid = cssVar('--grid') || '#5F5A52';
+      ctx.fillStyle = boardBg;
       ctx.fillRect(0,0,640,640);
       // 固定网格线宽，避免被上一次标记环(lineWidth=2/3)影响
-      ctx.strokeStyle = '#444';
+      ctx.strokeStyle = grid;
       ctx.lineWidth = 1;
       for(let i=0;i<19;i++){
         const p = 32 + i * 32; // 19线*间距32≈576，边距各32
@@ -253,13 +272,14 @@
 
     function drawStarPoints(){
       const pts = [3,9,15];
-      ctx.fillStyle = '#333';
+      const star = cssVar('--star') || '#4C463F';
+      ctx.fillStyle = star;
       for(const i of pts){
         for(const j of pts){
           const cx = 32 + i*32;
           const cy = 32 + j*32;
           ctx.beginPath();
-          ctx.arc(cx, cy, 3, 0, Math.PI*2);
+          ctx.arc(cx, cy, 2.8, 0, Math.PI*2);
           ctx.fill();
         }
       }
@@ -276,8 +296,8 @@
           grad.addColorStop(0, '#666');
           grad.addColorStop(1, '#111');
         }else{
-          grad.addColorStop(0, '#fff');
-          grad.addColorStop(1, '#ddd');
+          grad.addColorStop(0, '#FFFFFF');
+          grad.addColorStop(1, '#E9E3D6');
         }
         ctx.fillStyle = grad;
         ctx.fill();
@@ -287,7 +307,7 @@
     }
 
     function drawMoveMarkers(){
-      // 人类最近一步：细灰圈
+      // 人类最近一步：细灰圈（柔和）
       if(lastHumanMove){
         const cx = 32 + lastHumanMove.x*32;
         const cy = 32 + lastHumanMove.y*32;
@@ -297,34 +317,21 @@
         ctx.lineWidth = 2;
         ctx.stroke();
       }
-      // AI 最近一步：脉冲红圈动画
+      // AI 最近一步：静态琥珀色环（舒适）
       if(lastAiMove){
         const cx = 32 + lastAiMove.x*32;
         const cy = 32 + lastAiMove.y*32;
-        const elapsed = Math.max(0, performance.now() - aiPulseStartMs);
-        const dur = 1200; // ms
-        const t = Math.min(elapsed / dur, 1);
-        const radius = 16 + 6 * (1 - t);
-        const alpha = 0.9 * (1 - t);
+        const amber = cssVar('--accent-amber') || 'rgba(245,158,11,0.45)';
         ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI*2);
-        ctx.strokeStyle = `rgba(255, 77, 79, ${alpha.toFixed(3)})`;
+        ctx.arc(cx, cy, 18, 0, Math.PI*2);
+        ctx.strokeStyle = amber;
         ctx.lineWidth = 3;
         ctx.stroke();
-        if(t < 1 && rafId === null){ rafId = requestAnimationFrame(animLoop); }
       }
     }
 
-    function animLoop(){
-      rafId = null;
-      drawBoard();
-      if(performance.now() - aiPulseStartMs < 1200){ rafId = requestAnimationFrame(animLoop); }
-    }
-
-    function triggerAiPulse(){
-      aiPulseStartMs = performance.now();
-      if(rafId === null){ rafId = requestAnimationFrame(animLoop); }
-    }
+    function animLoop(){ /* no-op: animation reduced to static */ }
+    function triggerAiPulse(){ /* no-op: static marker */ }
 
     // engine status UI/functionality removed
 
@@ -451,7 +458,6 @@
           const r = applyMoveLocal(aiColor, coord.x, coord.y);
           if(r.captures>0){ caps[aiColor] += r.captures; updateCaps(); }
           lastAiMove = { x: coord.x, y: coord.y };
-          triggerAiPulse();
         }
       }
       if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
@@ -547,7 +553,6 @@
           const result = applyMoveLocal(aiColor, ai.x, ai.y);
           if(result.captures>0){ caps[aiColor] += result.captures; updateCaps(); log(`AI 提子: ${result.captures}`); }
           lastAiMove = { x: ai.x, y: ai.y };
-          triggerAiPulse();
         }
         drawBoard();
         // AI 行棋完成，轮到你
