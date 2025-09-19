@@ -53,17 +53,8 @@
       <div class="rows">
         <div class="row" style="justify-content:flex-start;">
           <label for="setSelect">题集：</label>
-          <select id="setSelect">
-            <option value="basic">基础死活</option>
-            <option value="capture">打吃与提子</option>
-            <option value="eyes">眼形入门</option>
-            <option value="ladder">征子识别</option>
-            <option value="corner">角部生死</option>
-            <option value="net">枷吃与扑</option>
-            <option value="connect">接不归</option>
-            <option value="ko">劫争入门</option>
-            <option value="endgame">官子入门</option>
-            <option value="reading">阅读训练</option>
+          <select id="setSelect" aria-label="题集选择（按入门/进阶/提升分组）">
+            <option disabled selected>加载题集…</option>
           </select>
           <span id="progress" class="muted" style="margin-left:8px;">—/—</span>
         </div>
@@ -397,8 +388,56 @@
       loadProblem(0);
     }
 
-    // init
-    loadSet('basic');
+    async function loadManifestAndBuildSelect(){
+      // 动态加载清单并按层级分组渲染下拉
+      let manifest = null;
+      try {
+        const res = await fetch('/problems/manifest.json');
+        if(res.ok) manifest = await res.json();
+      } catch(e) { /* ignore */ }
+      // 回退：若清单加载失败，使用内建列表
+      const fallbackLevels = [
+        {key:'E', label:'入门'}, {key:'I', label:'进阶'}, {key:'A', label:'提升'}
+      ];
+      const fallbackSets = [
+        {setId:'basic', title:'基础死活', level:'E'},
+        {setId:'capture', title:'打吃与提子', level:'E'},
+        {setId:'eyes', title:'眼形入门', level:'E'},
+        {setId:'ladder', title:'征子识别', level:'I'},
+        {setId:'net', title:'枷吃与扑', level:'I'},
+        {setId:'connect', title:'接不归', level:'I'},
+        {setId:'ko', title:'劫争入门', level:'I'},
+        {setId:'corner', title:'角部生死', level:'A'},
+        {setId:'endgame', title:'官子入门', level:'A'},
+        {setId:'reading', title:'阅读训练', level:'A'}
+      ];
+      const levels = Array.isArray(manifest?.levels) && manifest.levels.length ? manifest.levels : fallbackLevels;
+      const sets = Array.isArray(manifest?.sets) && manifest.sets.length ? manifest.sets : fallbackSets;
+      const def = manifest?.default || sets[0]?.setId || 'basic';
+
+      // 构建 optgroup
+      setSelect.innerHTML = '';
+      for(const lvl of levels){
+        const group = document.createElement('optgroup');
+        group.label = lvl.label;
+        const items = sets.filter(s=>s.level===lvl.key);
+        for(const s of items){
+          const opt = document.createElement('option');
+          opt.value = s.setId;
+          opt.textContent = s.title;
+          group.appendChild(opt);
+        }
+        if(group.children.length){ setSelect.appendChild(group); }
+      }
+
+      // 选择默认项并加载
+      const hasDef = Array.from(setSelect.options).some(o=>o.value===def);
+      setSelect.value = hasDef ? def : (setSelect.options[0]?.value || 'basic');
+      await loadSet(setSelect.value);
+    }
+
+    // init: 先加载清单并构建下拉，再加载默认题集
+    loadManifestAndBuildSelect();
     // 语音播报已移除
 
     // 无先手切换

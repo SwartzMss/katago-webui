@@ -1,0 +1,23 @@
+{
+  "levels": [
+    { "key": "E", "label": "入门" },
+    { "key": "I", "label": "进阶" },
+    { "key": "A", "label": "提升" }
+  ],
+  "sets": [
+    { "setId": "basic",   "title": "基础死活",   "level": "E" },
+    { "setId": "capture", "title": "打吃与提子", "level": "E" },
+    { "setId": "eyes",    "title": "眼形入门",   "level": "E" },
+
+    { "setId": "ladder",  "title": "征子识别",   "level": "I" },
+    { "setId": "net",     "title": "枷吃与扑",   "level": "I" },
+    { "setId": "connect", "title": "接不归",     "level": "I" },
+    { "setId": "ko",      "title": "劫争入门",   "level": "I" },
+
+    { "setId": "corner",  "title": "角部生死",   "level": "A" },
+    { "setId": "endgame", "title": "官子入门",   "level": "A" },
+    { "setId": "reading", "title": "阅读训练",   "level": "A" }
+  ],
+  "default": "basic"
+}
+
