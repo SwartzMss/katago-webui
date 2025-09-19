@@ -1,12 +1,140 @@
 {
-  "meta": {
-    "id": "capture",
-    "title": "打吃与提子",
-    "description": "基础的打吃、提子与数气练习题包",
-    "level": "L1-L2",
-    "tags": ["入门", "打吃", "提子"],
-    "version": 1
-  },
-  "problems": []
+  "setId": "capture",
+  "title": "打吃与提子（气的基础）",
+  "problems": [
+    {
+      "id": "C201",
+      "toPlay": "black",
+      "goal": "黑先，一口气提子",
+      "setup": [
+        {"x":10, "y":10, "color":"white"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":11, "y":10, "color":"black"},
+        {"x":10, "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":10, "y":11}]
+    },
+    {
+      "id": "C202",
+      "toPlay": "black",
+      "goal": "黑先，打吃先手（两口气连子）",
+      "setup": [
+        {"x":3,  "y":3,  "color":"white"},
+        {"x":3,  "y":4,  "color":"white"},
+        {"x":2,  "y":3,  "color":"black"},
+        {"x":4,  "y":3,  "color":"black"},
+        {"x":2,  "y":4,  "color":"black"}
+      ],
+      "firstMoves": [{"x":3,  "y":2}, {"x":3,  "y":5}]
+    },
+    {
+      "id": "C203",
+      "toPlay": "black",
+      "goal": "黑先，边上打吃（抢先手）",
+      "setup": [
+        {"x":0,  "y":10, "color":"white"},
+        {"x":1,  "y":10, "color":"black"},
+        {"x":0,  "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":0,  "y":11}]
+    },
+    {
+      "id": "C204",
+      "toPlay": "black",
+      "goal": "黑先，双打吃取先手",
+      "setup": [
+        {"x":13, "y":13, "color":"white"},
+        {"x":14, "y":13, "color":"black"},
+        {"x":13, "y":14, "color":"black"},
+        {"x":12, "y":12, "color":"white"}
+      ],
+      "firstMoves": [{"x":13, "y":12}, {"x":12, "y":13}]
+    },
+    {
+      "id": "C205",
+      "toPlay": "black",
+      "goal": "黑先，打吃后做厚（先手）",
+      "setup": [
+        {"x":6,  "y":6,  "color":"white"},
+        {"x":7,  "y":6,  "color":"black"},
+        {"x":6,  "y":7,  "color":"black"},
+        {"x":8,  "y":6,  "color":"white"}
+      ],
+      "firstMoves": [{"x":6,  "y":5}, {"x":5,  "y":6}]
+    },
+    {
+      "id": "C206",
+      "toPlay": "black",
+      "goal": "黑先，打吃限制对方出头",
+      "setup": [
+        {"x":8,  "y":12, "color":"white"},
+        {"x":9,  "y":12, "color":"black"},
+        {"x":8,  "y":13, "color":"black"},
+        {"x":7,  "y":11, "color":"black"}
+      ],
+      "firstMoves": [{"x":8,  "y":11}, {"x":7,  "y":12}]
+    },
+    {
+      "id": "C207",
+      "toPlay": "black",
+      "goal": "黑先，接不归判断（打吃更好）",
+      "setup": [
+        {"x":5,  "y":10, "color":"white"},
+        {"x":6,  "y":10, "color":"black"},
+        {"x":5,  "y":11, "color":"black"},
+        {"x":4,  "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":5,  "y":9}, {"x":4,  "y":10}]
+    },
+    {
+      "id": "C208",
+      "toPlay": "black",
+      "goal": "黑先，二路夹击后打吃",
+      "setup": [
+        {"x":15, "y":3,  "color":"white"},
+        {"x":16, "y":3,  "color":"black"},
+        {"x":15, "y":4,  "color":"black"}
+      ],
+      "firstMoves": [{"x":15, "y":2}, {"x":14, "y":3}]
+    },
+    {
+      "id": "C209",
+      "toPlay": "black",
+      "goal": "黑先，断点打吃（读一口气）",
+      "setup": [
+        {"x":12, "y":7,  "color":"white"},
+        {"x":13, "y":7,  "color":"black"},
+        {"x":12, "y":8,  "color":"black"},
+        {"x":11, "y":7,  "color":"white"}
+      ],
+      "firstMoves": [{"x":12, "y":6}]
+    },
+    {
+      "id": "C210",
+      "toPlay": "black",
+      "goal": "黑先，角部打吃（边角读气）",
+      "setup": [
+        {"x":1,  "y":1,  "color":"white"},
+        {"x":2,  "y":1,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"}
+      ],
+      "firstMoves": [{"x":0,  "y":1}, {"x":1,  "y":0}]
+    },
+    {
+      "id": "C211",
+      "toPlay": "black",
+      "goal": "黑先，两手吃子（演示序列）",
+      "setup": [
+        {"x":10, "y":10, "color":"white"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":10, "y":9,  "color":"black"},
+        {"x":11, "y":9,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":10, "y":11},
+        {"x":11, "y":10},
+        {"x":9,  "y":11}
+      ]
+    }
+  ]
 }
-
