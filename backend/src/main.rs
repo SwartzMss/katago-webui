@@ -49,6 +49,8 @@ struct GameState {
     last_active_at: i64,
     engine: Option<std::sync::Arc<engine::gtp::GtpEngine>>, // None 时使用占位行为
     human_color: String, // "black" or "white"
+    board_size: u32,
+    komi: f32,
 }
 
 
@@ -95,6 +97,7 @@ async fn main() {
         .route("/api/game/play", post(game_play))
         .route("/api/game/heartbeat", post(game_heartbeat))
         .route("/api/game/close", post(game_close))
+        .route("/api/game/score_detail", post(game_score_detail))
         .route("/api/game/hint", post(game_hint));
 
     let static_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -267,9 +270,10 @@ async fn game_new(
                         .unwrap_or_else(|| "chinese".to_string());
                     // 规则化 komi：Chinese 默认 7.5；其他沿用传入/默认值
                     let effective_komi: f32 = if rule_name.eq_ignore_ascii_case("chinese") { 7.5 } else { komi_req };
+                    // 顺序调整：先清盘，再设棋盘大小，最后设贴目，避免 clear_board 重置贴目导致异常（如出现 W+0.5）
+                    let _ = e.send_command("clear_board").await;
                     let _ = e.send_command(&format!("boardsize {}", board_size)).await;
                     let _ = e.send_command(&format!("komi {}", effective_komi)).await;
-                    let _ = e.send_command("clear_board").await;
                     Some(e)
                 }
                 Err(err) => {
@@ -293,7 +297,14 @@ async fn game_new(
         .unwrap_or_else(|| "black".to_string());
     state.game_store.insert(
         game_id.clone(),
-        GameState { sid: sid.clone(), last_active_at: now, engine: engine.clone(), human_color: player_color.clone() }
+        GameState {
+            sid: sid.clone(),
+            last_active_at: now,
+            engine: engine.clone(),
+            human_color: player_color.clone(),
+            board_size: maybe_body.as_ref().and_then(|j| j.boardSize).unwrap_or(19),
+            komi: if maybe_body.as_ref().and_then(|j| j.rules.clone()).unwrap_or_else(|| "chinese".to_string()).eq_ignore_ascii_case("chinese") { 7.5 } else { maybe_body.as_ref().and_then(|j| j.komi).unwrap_or(6.5) },
+        }
     );
 
     // 若人类执白，AI 需先手（B）
@@ -458,6 +469,79 @@ fn parse_gtp_move(resp: &str) -> String {
     let line = resp.lines().find(|l| !l.trim().is_empty()).unwrap_or("");
     let s = line.trim_start_matches('=').trim();
     s.to_string()
+}
+
+#[derive(serde::Serialize)]
+struct ScoreDetailResponse {
+    result: String,      // e.g. "B+2.5" / "W+7.5" / "—"
+    dead: Vec<String>,   // dead stones positions in GTP coords
+    boardSize: u32,
+    komi: f32,
+}
+
+#[derive(serde::Deserialize)]
+struct ScoreDetailRequest { gameId: String }
+
+// 合并：返回 final_score 结果 + 死子列表 + 棋盘参数（供前端自行计算双方分）
+async fn game_score_detail(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ScoreDetailRequest>,
+) -> impl IntoResponse {
+    let (engine, board_size, komi) = if let Some(gs) = state.game_store.get(&payload.gameId) {
+        (gs.engine.clone(), gs.board_size, gs.komi)
+    } else {
+        return (StatusCode::GONE, Json(serde_json::json!({"error":"GAME_EXPIRED"})));
+    };
+
+    // 无引擎：返回占位信息
+    if engine.is_none() {
+        let body = ScoreDetailResponse { result: "—".to_string(), dead: vec![], boardSize: board_size, komi };
+        return (StatusCode::OK, Json(serde_json::to_value(body).unwrap()));
+    }
+    let e = engine.unwrap();
+
+    // 1) final_status_list dead
+    let mut dead: Vec<String> = Vec::new();
+    if let Ok(resp) = e.send_command("final_status_list dead").await {
+        let mut acc = String::new();
+        for line in resp.lines() {
+            let t = line.trim();
+            if t.is_empty() { continue; }
+            let t = t.trim_start_matches('=');
+            acc.push(' ');
+            acc.push_str(t);
+        }
+        for tok in acc.split_whitespace() {
+            let v = tok.trim();
+            if v.is_empty() { continue; }
+            if v.eq_ignore_ascii_case("pass") { continue; }
+            dead.push(v.to_string());
+        }
+    }
+
+    // 2) final_score，带回退的兜底
+    let mut result_str = String::new();
+    if let Ok(resp) = e.send_command("final_score").await {
+        let line = resp.lines().find(|l| !l.trim().is_empty()).unwrap_or("").trim();
+        let s = line.trim_start_matches('=').trim();
+        if !s.is_empty() { result_str = s.to_string(); }
+    }
+    if result_str.is_empty() {
+        let mut applied: u32 = 0;
+        for cmd in ["play B pass", "play W pass", "play B pass", "play W pass"].iter() {
+            if applied >= 2 { break; }
+            if e.send_command(cmd).await.is_ok() { applied += 1; }
+        }
+        if let Ok(resp) = e.send_command("final_score").await {
+            let line = resp.lines().find(|l| !l.trim().is_empty()).unwrap_or("").trim();
+            result_str = line.trim_start_matches('=').trim().to_string();
+        }
+        for _ in 0..applied { let _ = e.send_command("undo").await; }
+        if result_str.is_empty() { result_str = "—".to_string(); }
+    }
+
+    let body = ScoreDetailResponse { result: result_str, dead, boardSize: board_size, komi };
+    (StatusCode::OK, Json(serde_json::to_value(body).unwrap()))
 }
 
 fn overrides_for_level(level: u8) -> Vec<(&'static str, String)> {

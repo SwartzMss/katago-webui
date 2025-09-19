@@ -72,6 +72,10 @@
     button { padding: 6px 12px; }
     #log { height: 180px; overflow: auto; background: var(--log-bg); border: 1px solid var(--border); padding: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.5; resize: vertical; color: var(--text); }
     .caps { font-size: 13px; color: var(--muted); }
+    .scorebox { font-size: 18px; color: var(--text); text-align:center; padding: 6px 10px; background: #ffffff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 3px #0000000a; }
+    .scorebox #scoreMe, .scorebox #scoreAI { font-size: 28px; font-weight: 700; letter-spacing: .5px; display: inline-block; padding: 0 4px; }
+    @keyframes score-pop { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    #scoreMe.bump, #scoreAI.bump { animation: score-pop 180ms ease-in-out; }
     
   </style>
 </head>
@@ -131,10 +135,14 @@
         </div>
       </div>
       <div class="row center" style="grid-column:3;">
-        <div class="avatar-box">
-          <div class="avatar ai">AI</div>
-          <div class="meta"><span class="color-dot" id="aiColor"></span> 吃掉: <span id="capAI">0</span></div>
-        </div>
+      <div class="avatar-box">
+        <div class="avatar ai">AI</div>
+        <div class="meta"><span class="color-dot" id="aiColor"></span> 吃掉: <span id="capAI">0</span></div>
+      </div>
+      </div>
+
+      <div class="row center span-3 scorebox">
+        得分：<span id="scoreMe">0</span> : <span id="scoreAI">0</span>
       </div>
 
       
@@ -354,6 +362,73 @@
       }
     }
 
+    // 标准面积分拆分显示：黑=棋子+地；白=棋子+地+贴目
+    async function updateScoreEstimate(){
+      const meEl = document.getElementById('scoreMe');
+      const aiEl = document.getElementById('scoreAI');
+      if(!meEl || !aiEl) return;
+      if(!gameId){ meEl.textContent = '0'; aiEl.textContent = '0'; return; }
+      try{
+        const res = await fetch('/api/game/score_detail', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId }) });
+        if(!res.ok){ return; }
+        const j = await res.json();
+        const deadList = Array.isArray(j.dead) ? j.dead : [];
+        const komi = typeof j.komi === 'number' ? j.komi : 7.5;
+        // 将 dead 坐标转换为易查找的 set（x,y）
+        const deadSet = new Set();
+        for(const mv of deadList){
+          const c = moveToCoord(String(mv));
+          if(c) deadSet.add(c.x+','+c.y);
+        }
+        // 基于前端 stones（与引擎同步）计算：先移除死子，再洪泛空点
+        const occ = new Array(19*19).fill(0); // 0 空，1 黑，2 白
+        let sb = 0, sw = 0;
+        for(const s of stones){
+          const key = s.x+','+s.y;
+          if(deadSet.has(key)) continue; // 视作已提掉
+          const idx = s.y*19 + s.x;
+          occ[idx] = (s.color === 'black') ? 1 : 2;
+          if(s.color === 'black') sb++; else sw++;
+        }
+        // 空点洪泛：仅邻一色计地（但在只有一方落子时不判断地，避免开局误判 0:361 等）
+        let tb = 0, tw = 0;
+        if(sb > 0 && sw > 0){
+          const seen = new Array(19*19).fill(false);
+          for(let y=0;y<19;y++){
+            for(let x=0;x<19;x++){
+              const i = y*19 + x;
+              if(occ[i] !== 0 || seen[i]) continue;
+              let q = [[x,y]]; seen[i] = true;
+              let cnt = 0; let adjB=false, adjW=false;
+              while(q.length){
+                const [cx,cy] = q.pop(); cnt++;
+                const nbs = [];
+                if(cx>0) nbs.push([cx-1,cy]);
+                if(cx<18) nbs.push([cx+1,cy]);
+                if(cy>0) nbs.push([cx,cy-1]);
+                if(cy<18) nbs.push([cx,cy+1]);
+                for(const [nx,ny] of nbs){
+                  const idx = ny*19 + nx;
+                  const v = occ[idx];
+                  if(v === 1) adjB = true; else if(v === 2) adjW = true; else if(!seen[idx]){ seen[idx]=true; q.push([nx,ny]); }
+                }
+              }
+              if(adjB && !adjW) tb += cnt; else if(adjW && !adjB) tw += cnt;
+            }
+          }
+        }
+        const blackTotal = sb + tb;
+        const whiteTotalRaw = sw + tw;
+        const fmt = (v)=>{ const s = v.toFixed(1); return s.endsWith('.0') ? String(Math.round(v)) : s; };
+        const meIsBlack = (playerColor === 'black');
+        const meVal = meIsBlack ? blackTotal : whiteTotalRaw;
+        const aiVal = meIsBlack ? whiteTotalRaw : blackTotal;
+        const nMe = fmt(meVal), nAi = fmt(aiVal);
+        if(meEl.textContent !== nMe){ meEl.textContent = nMe; meEl.classList.remove('bump'); void meEl.offsetWidth; meEl.classList.add('bump'); }
+        if(aiEl.textContent !== nAi){ aiEl.textContent = nAi; aiEl.classList.remove('bump'); void aiEl.offsetWidth; aiEl.classList.add('bump'); }
+      }catch(_){ /* 忽略 */ }
+    }
+
     function animLoop(){ /* no-op: animation reduced to static */ }
     function triggerAiPulse(){ /* no-op: static marker */ }
 
@@ -488,6 +563,8 @@
       if(resignBtn){ resignBtn.disabled = false; resignBtn.classList.add('btn-primary'); }
       startHeartbeat();
       drawBoard();
+      // 开局后刷新一次标准比分
+      await updateScoreEstimate();
       // 无论是否有 AI 先手，处理完后轮到你
       setTurn('you');
       }catch(err){
@@ -582,6 +659,8 @@
           lastAiMove = { x: ai.x, y: ai.y };
         }
         drawBoard();
+        // 每次双方各下一手后刷新比分
+        await updateScoreEstimate();
         // AI 行棋完成，轮到你
         setTurn('you');
       }catch(err){
