@@ -67,8 +67,9 @@
         </div>
       </div>
       <!-- 先手固定为黑，去掉黑/白切换 -->
-      <div class="row" style="margin-top:8px; gap:12px;">
+        <div class="row" style="margin-top:8px; gap:12px; align-items:baseline;">
         <div id="goal">目标：—</div>
+        <span id="stepProgress" class="muted"></span>
       </div>
       <!-- 移除文字提示，避免布局抖动；提示以棋盘高亮方式呈现 -->
     </div>
@@ -79,6 +80,7 @@
     const board = document.getElementById('board');
     const ctx = board.getContext('2d');
     const goalEl = document.getElementById('goal');
+    const stepProgressEl = document.getElementById('stepProgress');
     // 文字提示已移除，采用棋盘高亮
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -94,6 +96,9 @@
     let toPlay = 'black';
     let showHint = false;
     let finished = false;
+    // 多步序列支持
+    let sequence = null; // 数组：按先黑后白交替，元素为 {x,y} 或 {opts:[{x,y}]}
+    let seqStep = 0;     // 当前步索引（0 基），偶数=黑，奇数=白
     // 训练默认黑先
 
     function toast(msg, ms=1200){
@@ -133,7 +138,16 @@
       }
     }
     function drawHintMarkers(){
-      const prob = problems[idx]; if(!prob) return; const view = currentView(prob); const moves = view.firstMoves || [];
+      const prob = problems[idx]; if(!prob) return; const view = currentView(prob);
+      let moves = [];
+      if(sequence && sequence.length){
+        if(seqStep % 2 === 0){
+          const step = currentExpectedMoves();
+          moves = step.opts || [];
+        }
+      } else {
+        moves = view.firstMoves || [];
+      }
       const teal = 'rgba(46,125,107,1)';
       ctx.setLineDash([6,4]); ctx.lineWidth = 2; ctx.strokeStyle = teal;
       for(const m of moves){
@@ -211,6 +225,27 @@
       };
     }
     function applySideUI(_p){ /* 去掉先手切换：不显示任何控件 */ }
+
+    function normalizeStep(step){
+      if(!step) return {opts:[]};
+      if(Array.isArray(step.opts)) return {opts: step.opts};
+      if(typeof step?.x === 'number' && typeof step?.y === 'number') return {opts:[{x:step.x,y:step.y}]};
+      return {opts:[]};
+    }
+    function currentExpectedMoves(){
+      if(!sequence || !Array.isArray(sequence)) return {opts:[]};
+      if(seqStep >= sequence.length) return {opts:[]};
+      return normalizeStep(sequence[seqStep]);
+    }
+    function updateStepProgress(){
+      if(sequence && sequence.length){
+        const totalBlackSteps = Math.ceil(sequence.length/2);
+        const currentBlackStep = Math.floor(seqStep/2) + 1;
+        stepProgressEl.textContent = `(步骤 ${Math.min(currentBlackStep, totalBlackSteps)}/${totalBlackSteps})`;
+      } else {
+        stepProgressEl.textContent = '';
+      }
+    }
     function updateProgressUI(){
       if(!problems.length){
         progressEl.textContent = '—/—';
@@ -241,10 +276,14 @@
       stones = (p.setup || []).map(s=>({x:s.x,y:s.y,color:s.color}));
       applySideUI(p);
       const view = currentView(p);
-      toPlay = view.toPlay || 'black';
+      toPlay = 'black';
+      // 读取多步序列（可选）
+      sequence = Array.isArray(p.sequence) ? p.sequence.slice() : null;
+      seqStep = 0;
       goalEl.textContent = '目标：' + (view.goal || '—');
       drawBoard();
       updateProgressUI();
+      updateStepProgress();
     }
 
     function nextProblem(){ const ni = Math.min(idx+1, Math.max(0, problems.length-1)); loadProblem(ni); }
@@ -255,24 +294,46 @@
       const rect = board.getBoundingClientRect();
       const pt = boardCoordFromPixel(e.clientX-rect.left, e.clientY-rect.top);
       if(!pt) return;
-      const color = toPlay;
+      // 多步序列题逻辑
+      if(sequence && sequence.length){
+        if(seqStep % 2 !== 0){ return; } // 等待系统代白落子
+        const step = currentExpectedMoves();
+        const ok = (step.opts || []).some(m=>m.x===pt.x && m.y===pt.y);
+        if(!ok){ toast('不对'); return; }
+        const res = applyMoveLocal('black', pt.x, pt.y);
+        if(!res.ok){ toast('非法落子'); return; }
+        seqStep += 1;
+        autoPlayWhiteIfAny();
+        if(seqStep >= (sequence?.length || 0)) { finished = true; toast('完成'); }
+        drawBoard(); updateStepProgress();
+        return;
+      }
+      // 单步题逻辑
+      const color = 'black';
       const res = applyMoveLocal(color, pt.x, pt.y);
       if(!res.ok){ toast('非法落子'); return; }
       const prob = problems[idx];
       const view = currentView(prob);
       const correct = (view.firstMoves || []).some(m=>m.x===pt.x && m.y===pt.y);
-      if(correct){
-        finished = true; toast('正确');
-      } else {
-        // revert wrong move but给出提示
+      if(correct){ finished = true; toast('正确'); }
+      else {
         stones = stones.filter(s=>!(s.x===pt.x && s.y===pt.y && s.color===color));
-        // 错误不自动提示，由用户主动点击“提示”
         toast('不对');
       }
-      // 无论正误，统一重绘：正确时保留落子，错误时已回退
       drawBoard();
 
     });
+
+    function autoPlayWhiteIfAny(){
+      if(!(sequence && sequence.length)) return;
+      if(seqStep % 2 !== 1) return;
+      if(seqStep >= sequence.length) return;
+      const step = normalizeStep(sequence[seqStep]);
+      const mv = (step.opts && step.opts[0]) ? step.opts[0] : null;
+      if(!mv) return;
+      const res = applyMoveLocal('white', mv.x, mv.y);
+      if(res.ok){ seqStep += 1; }
+    }
 
     resetBtn.onclick = ()=> loadProblem(idx);
     nextBtn.onclick = ()=> nextProblem();

@@ -119,6 +119,22 @@
         {"x":1,  "y":2,  "color":"black"}
       ],
       "firstMoves": [{"x":0,  "y":1}, {"x":1,  "y":0}]
+    },
+    {
+      "id": "C211",
+      "toPlay": "black",
+      "goal": "黑先，两手吃子（演示序列）",
+      "setup": [
+        {"x":10, "y":10, "color":"white"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":10, "y":9,  "color":"black"},
+        {"x":11, "y":9,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":10, "y":11},
+        {"x":11, "y":10},
+        {"x":9,  "y":11}
+      ]
     }
   ]
 }
