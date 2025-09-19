@@ -1,0 +1,131 @@
+{
+  "setId": "reading",
+  "title": "阅读训练（提升）",
+  "problems": [
+    {
+      "id": "R901",
+      "toPlay": "black",
+      "goal": "黑先，三手收束（黑-白-黑）",
+      "setup": [
+        {"x":10, "y":10, "color":"white"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":10, "y":9,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":11, "y":10},
+        {"x":11, "y":11},
+        {"x":12, "y":10}
+      ]
+    },
+    {
+      "id": "R902",
+      "toPlay": "black",
+      "goal": "黑先，三手：边上打吃并封路",
+      "setup": [
+        {"x":0,  "y":12, "color":"white"},
+        {"x":1,  "y":12, "color":"black"},
+        {"x":0,  "y":11, "color":"black"}
+      ],
+      "sequence": [
+        {"x":0,  "y":13},
+        {"x":1,  "y":13},
+        {"x":0,  "y":14}
+      ]
+    },
+    {
+      "id": "R903",
+      "toPlay": "black",
+      "goal": "黑先，五手：打吃-对手应-继续追击",
+      "setup": [
+        {"x":6,  "y":6,  "color":"white"},
+        {"x":5,  "y":6,  "color":"black"},
+        {"x":6,  "y":5,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":7,  "y":6},
+        {"x":7,  "y":7},
+        {"x":8,  "y":6},
+        {"x":8,  "y":7},
+        {"x":9,  "y":6}
+      ]
+    },
+    {
+      "id": "R904",
+      "toPlay": "black",
+      "goal": "黑先，三手：角上扳粘取先手",
+      "setup": [
+        {"x":2,  "y":2,  "color":"black"},
+        {"x":3,  "y":1,  "color":"white"}
+      ],
+      "sequence": [
+        {"x":2,  "y":1},
+        {"x":3,  "y":2},
+        {"x":1,  "y":2}
+      ]
+    },
+    {
+      "id": "R905",
+      "toPlay": "black",
+      "goal": "黑先，三手：中腹追征方向正确",
+      "setup": [
+        {"x":12, "y":12, "color":"white"},
+        {"x":11, "y":12, "color":"black"},
+        {"x":12, "y":11, "color":"black"}
+      ],
+      "sequence": [
+        {"x":13, "y":12},
+        {"x":13, "y":13},
+        {"x":14, "y":12}
+      ]
+    },
+    {
+      "id": "R906",
+      "toPlay": "black",
+      "goal": "黑先，三手：边上封住出头",
+      "setup": [
+        {"x":3,  "y":14, "color":"white"},
+        {"x":2,  "y":14, "color":"black"},
+        {"x":3,  "y":13, "color":"black"}
+      ],
+      "sequence": [
+        {"x":4,  "y":14},
+        {"x":4,  "y":15},
+        {"x":5,  "y":14}
+      ]
+    },
+    {
+      "id": "R907",
+      "toPlay": "black",
+      "goal": "黑先，五手：断点先后与追击",
+      "setup": [
+        {"x":14, "y":6,  "color":"white"},
+        {"x":13, "y":6,  "color":"black"},
+        {"x":14, "y":5,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":15, "y":6},
+        {"x":15, "y":7},
+        {"x":16, "y":6},
+        {"x":16, "y":7},
+        {"x":17, "y":6}
+      ]
+    },
+    {
+      "id": "R908",
+      "toPlay": "black",
+      "goal": "黑先，三手：点入做眼后补强",
+      "setup": [
+        {"x":8,  "y":8,  "color":"black"},
+        {"x":9,  "y":9,  "color":"black"},
+        {"x":8,  "y":10, "color":"black"},
+        {"x":7,  "y":9,  "color":"white"}
+      ],
+      "sequence": [
+        {"x":8,  "y":9},
+        {"x":9,  "y":8},
+        {"x":9,  "y":10}
+      ]
+    }
+  ]
+}
+

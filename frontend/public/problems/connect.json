@@ -1,0 +1,124 @@
+{
+  "setId": "connect",
+  "title": "接不归（进阶）",
+  "problems": [
+    {
+      "id": "J601",
+      "toPlay": "black",
+      "goal": "黑先，打吃比粘更好（接不归）",
+      "setup": [
+        {"x":6,  "y":10, "color":"white"},
+        {"x":7,  "y":10, "color":"black"},
+        {"x":6,  "y":11, "color":"black"},
+        {"x":5,  "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":6,  "y":9}]
+    },
+    {
+      "id": "J602",
+      "toPlay": "black",
+      "goal": "黑先，避免粘而被征（读方向）",
+      "setup": [
+        {"x":8,  "y":8,  "color":"white"},
+        {"x":9,  "y":8,  "color":"black"},
+        {"x":8,  "y":7,  "color":"black"},
+        {"x":7,  "y":9,  "color":"white"}
+      ],
+      "firstMoves": [{"x":8,  "y":9}]
+    },
+    {
+      "id": "J603",
+      "toPlay": "black",
+      "goal": "黑先，先手打吃限制连接",
+      "setup": [
+        {"x":12, "y":6,  "color":"white"},
+        {"x":11, "y":6,  "color":"black"},
+        {"x":12, "y":5,  "color":"black"}
+      ],
+      "firstMoves": [{"x":13, "y":6}]
+    },
+    {
+      "id": "J604",
+      "toPlay": "black",
+      "goal": "黑先，角上接不归（断其出头）",
+      "setup": [
+        {"x":1,  "y":2,  "color":"white"},
+        {"x":2,  "y":2,  "color":"black"},
+        {"x":1,  "y":1,  "color":"black"}
+      ],
+      "firstMoves": [{"x":2,  "y":1}]
+    },
+    {
+      "id": "J605",
+      "toPlay": "black",
+      "goal": "黑先，接不归关键一手（两等价点）",
+      "setup": [
+        {"x":14, "y":12, "color":"white"},
+        {"x":13, "y":12, "color":"black"},
+        {"x":14, "y":11, "color":"black"}
+      ],
+      "firstMoves": [{"x":15, "y":12}, {"x":14, "y":13}]
+    },
+    {
+      "id": "J606",
+      "toPlay": "black",
+      "goal": "黑先，避免贴而死（退一步更好）",
+      "setup": [
+        {"x":10, "y":14, "color":"white"},
+        {"x":9,  "y":14, "color":"black"},
+        {"x":10, "y":13, "color":"black"},
+        {"x":8,  "y":15, "color":"white"}
+      ],
+      "firstMoves": [{"x":11, "y":14}]
+    },
+    {
+      "id": "J607",
+      "toPlay": "black",
+      "goal": "黑先，先断再打（接不归方向）",
+      "setup": [
+        {"x":4,  "y":6,  "color":"white"},
+        {"x":3,  "y":6,  "color":"black"},
+        {"x":4,  "y":5,  "color":"black"}
+      ],
+      "firstMoves": [{"x":5,  "y":6}]
+    },
+    {
+      "id": "J608",
+      "toPlay": "black",
+      "goal": "黑先，边上接不归（堵住）",
+      "setup": [
+        {"x":0,  "y":8,  "color":"white"},
+        {"x":1,  "y":8,  "color":"black"},
+        {"x":0,  "y":7,  "color":"black"}
+      ],
+      "firstMoves": [{"x":0,  "y":9}]
+    },
+    {
+      "id": "J609",
+      "toPlay": "black",
+      "goal": "黑先，中腹接不归（不粘更好）",
+      "setup": [
+        {"x":16, "y":8,  "color":"white"},
+        {"x":15, "y":8,  "color":"black"},
+        {"x":16, "y":7,  "color":"black"}
+      ],
+      "firstMoves": [{"x":17, "y":8}]
+    },
+    {
+      "id": "J610",
+      "toPlay": "black",
+      "goal": "黑先，三手演示：先打后封",
+      "setup": [
+        {"x":6,  "y":3,  "color":"white"},
+        {"x":5,  "y":3,  "color":"black"},
+        {"x":6,  "y":2,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":7,  "y":3},
+        {"x":7,  "y":4},
+        {"x":6,  "y":4}
+      ]
+    }
+  ]
+}
+

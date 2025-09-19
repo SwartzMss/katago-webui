@@ -1,0 +1,98 @@
+{
+  "setId": "ko",
+  "title": "劫争入门（进阶）",
+  "problems": [
+    {
+      "id": "K701",
+      "toPlay": "black",
+      "goal": "黑先，打劫第一手（角上）",
+      "setup": [
+        {"x":1,  "y":1,  "color":"white"},
+        {"x":2,  "y":1,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"},
+        {"x":2,  "y":2,  "color":"white"}
+      ],
+      "firstMoves": [{"x":0,  "y":1}]
+    },
+    {
+      "id": "K702",
+      "toPlay": "black",
+      "goal": "黑先，打劫关键点（中腹）",
+      "setup": [
+        {"x":10, "y":10, "color":"white"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":10, "y":9,  "color":"black"},
+        {"x":11, "y":11, "color":"white"}
+      ],
+      "firstMoves": [{"x":10, "y":11}]
+    },
+    {
+      "id": "K703",
+      "toPlay": "black",
+      "goal": "黑先，边上打劫（先手判断）",
+      "setup": [
+        {"x":0,  "y":12, "color":"white"},
+        {"x":1,  "y":12, "color":"black"},
+        {"x":0,  "y":11, "color":"black"},
+        {"x":2,  "y":13, "color":"white"}
+      ],
+      "firstMoves": [{"x":0,  "y":13}]
+    },
+    {
+      "id": "K704",
+      "toPlay": "black",
+      "goal": "黑先，劫材不展开（只选打劫点）",
+      "setup": [
+        {"x":14, "y":14, "color":"white"},
+        {"x":13, "y":14, "color":"black"},
+        {"x":14, "y":13, "color":"black"}
+      ],
+      "firstMoves": [{"x":15, "y":14}]
+    },
+    {
+      "id": "K705",
+      "toPlay": "black",
+      "goal": "黑先，角上打劫避免送活",
+      "setup": [
+        {"x":1,  "y":3,  "color":"white"},
+        {"x":2,  "y":3,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"}
+      ],
+      "firstMoves": [{"x":2,  "y":2}]
+    },
+    {
+      "id": "K706",
+      "toPlay": "black",
+      "goal": "黑先，打劫第一手（中腹二）",
+      "setup": [
+        {"x":12, "y":8,  "color":"white"},
+        {"x":11, "y":8,  "color":"black"},
+        {"x":12, "y":7,  "color":"black"}
+      ],
+      "firstMoves": [{"x":13, "y":8}]
+    },
+    {
+      "id": "K707",
+      "toPlay": "black",
+      "goal": "黑先，打劫关键点（边角）",
+      "setup": [
+        {"x":0,  "y":6,  "color":"white"},
+        {"x":1,  "y":6,  "color":"black"},
+        {"x":0,  "y":5,  "color":"black"}
+      ],
+      "firstMoves": [{"x":0,  "y":7}]
+    },
+    {
+      "id": "K708",
+      "toPlay": "black",
+      "goal": "黑先，劫感入门（只落打劫点）",
+      "setup": [
+        {"x":16, "y":10, "color":"white"},
+        {"x":15, "y":10, "color":"black"},
+        {"x":16, "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":17, "y":10}]
+    }
+  ]
+}
+

@@ -1,0 +1,122 @@
+{
+  "setId": "net",
+  "title": "枷吃与扑（进阶）",
+  "problems": [
+    {
+      "id": "N501",
+      "toPlay": "black",
+      "goal": "黑先，网吃起手（先封路）",
+      "setup": [
+        {"x":9,  "y":9,  "color":"white"},
+        {"x":8,  "y":9,  "color":"black"},
+        {"x":9,  "y":8,  "color":"black"}
+      ],
+      "firstMoves": [{"x":10, "y":9}]
+    },
+    {
+      "id": "N502",
+      "toPlay": "black",
+      "goal": "黑先，扑住出头（边上）",
+      "setup": [
+        {"x":0,  "y":10, "color":"white"},
+        {"x":1,  "y":10, "color":"black"},
+        {"x":0,  "y":9,  "color":"black"}
+      ],
+      "firstMoves": [{"x":1, "y":9}]
+    },
+    {
+      "id": "N503",
+      "toPlay": "black",
+      "goal": "黑先，网吃方向（向外更好）",
+      "setup": [
+        {"x":6,  "y":6,  "color":"white"},
+        {"x":5,  "y":6,  "color":"black"},
+        {"x":6,  "y":5,  "color":"black"},
+        {"x":7,  "y":7,  "color":"black"}
+      ],
+      "firstMoves": [{"x":7, "y":6}]
+    },
+    {
+      "id": "N504",
+      "toPlay": "black",
+      "goal": "黑先，先手扑（堵出口）",
+      "setup": [
+        {"x":12, "y":12, "color":"white"},
+        {"x":11, "y":12, "color":"black"},
+        {"x":12, "y":11, "color":"black"}
+      ],
+      "firstMoves": [{"x":13, "y":12}]
+    },
+    {
+      "id": "N505",
+      "toPlay": "black",
+      "goal": "黑先，角上枷吃（利用一线）",
+      "setup": [
+        {"x":1,  "y":1,  "color":"white"},
+        {"x":2,  "y":1,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"}
+      ],
+      "firstMoves": [{"x":0, "y":2}]
+    },
+    {
+      "id": "N506",
+      "toPlay": "black",
+      "goal": "黑先，枷吃转征（关键一手）",
+      "setup": [
+        {"x":14, "y":8,  "color":"white"},
+        {"x":13, "y":8,  "color":"black"},
+        {"x":14, "y":7,  "color":"black"}
+      ],
+      "firstMoves": [{"x":15, "y":8}]
+    },
+    {
+      "id": "N507",
+      "toPlay": "black",
+      "goal": "黑先，扑并压缩气（两等价点）",
+      "setup": [
+        {"x":8,  "y":12, "color":"white"},
+        {"x":7,  "y":12, "color":"black"},
+        {"x":8,  "y":11, "color":"black"}
+      ],
+      "firstMoves": [{"x":9, "y":12}, {"x":8, "y":13}]
+    },
+    {
+      "id": "N508",
+      "toPlay": "black",
+      "goal": "黑先，网吃收束（三手演示）",
+      "setup": [
+        {"x":10, "y":4,  "color":"white"},
+        {"x":9,  "y":4,  "color":"black"},
+        {"x":10, "y":3,  "color":"black"}
+      ],
+      "sequence": [
+        {"x":11, "y":4},
+        {"x":11, "y":5},
+        {"x":12, "y":4}
+      ]
+    },
+    {
+      "id": "N509",
+      "toPlay": "black",
+      "goal": "黑先，向边线扑（防出头）",
+      "setup": [
+        {"x":3,  "y":14, "color":"white"},
+        {"x":2,  "y":14, "color":"black"},
+        {"x":3,  "y":13, "color":"black"}
+      ],
+      "firstMoves": [{"x":4, "y":14}]
+    },
+    {
+      "id": "N510",
+      "toPlay": "black",
+      "goal": "黑先，封住转角（网吃关键位）",
+      "setup": [
+        {"x":1,  "y":3,  "color":"white"},
+        {"x":2,  "y":3,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"}
+      ],
+      "firstMoves": [{"x":2, "y":2}]
+    }
+  ]
+}
+

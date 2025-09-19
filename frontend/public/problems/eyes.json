@@ -74,7 +74,79 @@
         {"x":2,  "y":3,  "color":"white"}
       ],
       "firstMoves": [{"x":1, "y":2}]
+    },
+    {
+      "id": "E107",
+      "toPlay": "black",
+      "goal": "黑先，中腹点成眼（唯一要点）",
+      "setup": [
+        {"x":9,  "y":9,  "color":"black"},
+        {"x":9,  "y":11, "color":"black"},
+        {"x":10, "y":10, "color":"black"},
+        {"x":8,  "y":10, "color":"white"}
+      ],
+      "firstMoves": [{"x":9,  "y":10}]
+    },
+    {
+      "id": "E108",
+      "toPlay": "black",
+      "goal": "黑先，补虎口避免被断（两等价点）",
+      "setup": [
+        {"x":6,  "y":6,  "color":"black"},
+        {"x":7,  "y":7,  "color":"black"},
+        {"x":7,  "y":6,  "color":"white"},
+        {"x":6,  "y":7,  "color":"white"},
+        {"x":8,  "y":6,  "color":"white"}
+      ],
+      "firstMoves": [{"x":7, "y":6}, {"x":6, "y":7}]
+    },
+    {
+      "id": "E109",
+      "toPlay": "black",
+      "goal": "黑先，角上一线真眼补点",
+      "setup": [
+        {"x":1,  "y":4,  "color":"black"},
+        {"x":2,  "y":3,  "color":"black"},
+        {"x":3,  "y":2,  "color":"black"},
+        {"x":2,  "y":4,  "color":"white"}
+      ],
+      "firstMoves": [{"x":1, "y":3}]
+    },
+    {
+      "id": "E110",
+      "toPlay": "black",
+      "goal": "黑先，破假眼优先点（点入）",
+      "setup": [
+        {"x":12, "y":12, "color":"white"},
+        {"x":13, "y":12, "color":"black"},
+        {"x":12, "y":13, "color":"black"},
+        {"x":11, "y":11, "color":"white"}
+      ],
+      "firstMoves": [{"x":12, "y":11}]
+    },
+    {
+      "id": "E111",
+      "toPlay": "black",
+      "goal": "黑先，边上做两眼（虎口位）",
+      "setup": [
+        {"x":4,  "y":10, "color":"black"},
+        {"x":5,  "y":11, "color":"black"},
+        {"x":5,  "y":10, "color":"white"},
+        {"x":4,  "y":11, "color":"white"}
+      ],
+      "firstMoves": [{"x":5, "y":10}, {"x":4, "y":11}]
+    },
+    {
+      "id": "E112",
+      "toPlay": "black",
+      "goal": "黑先，补断做眼（唯一要点）",
+      "setup": [
+        {"x":15, "y":15, "color":"black"},
+        {"x":16, "y":16, "color":"black"},
+        {"x":16, "y":15, "color":"white"},
+        {"x":15, "y":16, "color":"white"}
+      ],
+      "firstMoves": [{"x":16, "y":15}]
     }
   ]
 }
-
