@@ -1,0 +1,80 @@
+{
+  "setId": "eyes",
+  "title": "眼形入门（入门）",
+  "problems": [
+    {
+      "id": "E101",
+      "toPlay": "black",
+      "goal": "黑先，补虎口稳固（两等价点）",
+      "setup": [
+        {"x":3, "y":3, "color":"black"},
+        {"x":4, "y":4, "color":"black"},
+        {"x":4, "y":3, "color":"white"},
+        {"x":3, "y":4, "color":"white"}
+      ],
+      "firstMoves": [{"x":4, "y":3}, {"x":3, "y":4}]
+    },
+    {
+      "id": "E102",
+      "toPlay": "black",
+      "goal": "黑先，角上补点做真眼",
+      "setup": [
+        {"x":1, "y":2, "color":"black"},
+        {"x":2, "y":1, "color":"black"},
+        {"x":2, "y":2, "color":"black"},
+        {"x":3, "y":2, "color":"white"},
+        {"x":2, "y":3, "color":"white"}
+      ],
+      "firstMoves": [{"x":1, "y":1}]
+    },
+    {
+      "id": "E103",
+      "toPlay": "black",
+      "goal": "黑先，点中腹做眼（要点一处）",
+      "setup": [
+        {"x":10, "y":9,  "color":"black"},
+        {"x":9,  "y":10, "color":"black"},
+        {"x":11, "y":10, "color":"black"},
+        {"x":10, "y":11, "color":"white"}
+      ],
+      "firstMoves": [{"x":10, "y":10}]
+    },
+    {
+      "id": "E104",
+      "toPlay": "black",
+      "goal": "黑先，补断点成眼（两等价点）",
+      "setup": [
+        {"x":6, "y":6, "color":"black"},
+        {"x":7, "y":7, "color":"black"},
+        {"x":7, "y":6, "color":"white"},
+        {"x":6, "y":7, "color":"white"}
+      ],
+      "firstMoves": [{"x":7, "y":6}, {"x":6, "y":7}]
+    },
+    {
+      "id": "E105",
+      "toPlay": "black",
+      "goal": "黑先，边上补点做活（虎口位）",
+      "setup": [
+        {"x":2,  "y":10, "color":"black"},
+        {"x":3,  "y":11, "color":"black"},
+        {"x":3,  "y":10, "color":"white"},
+        {"x":2,  "y":11, "color":"white"}
+      ],
+      "firstMoves": [{"x":3, "y":10}, {"x":2, "y":11}]
+    },
+    {
+      "id": "E106",
+      "toPlay": "black",
+      "goal": "黑先，角部要点：补强做两眼",
+      "setup": [
+        {"x":1,  "y":3,  "color":"black"},
+        {"x":2,  "y":2,  "color":"black"},
+        {"x":3,  "y":1,  "color":"black"},
+        {"x":2,  "y":3,  "color":"white"}
+      ],
+      "firstMoves": [{"x":1, "y":2}]
+    }
+  ]
+}
+

@@ -9,4 +9,4 @@ backend/logs/
 
 # KataGo GTP logs (do not commit)
 backend/gtp_logs/
-
+gtp_logs/

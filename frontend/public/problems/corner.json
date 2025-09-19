@@ -1,0 +1,53 @@
+{
+  "setId": "corner",
+  "title": "角部生死（提升）",
+  "problems": [
+    {
+      "id": "A401",
+      "toPlay": "black",
+      "goal": "黑先，角部必点（成活要点）",
+      "setup": [
+        {"x":1,  "y":1,  "color":"black"},
+        {"x":2,  "y":1,  "color":"black"},
+        {"x":1,  "y":2,  "color":"black"},
+        {"x":2,  "y":2,  "color":"white"}
+      ],
+      "firstMoves": [{"x":0, "y":1}, {"x":1, "y":0}]
+    },
+    {
+      "id": "A402",
+      "toPlay": "black",
+      "goal": "黑先，三三活形补点（唯一要点）",
+      "setup": [
+        {"x":2,  "y":2,  "color":"black"},
+        {"x":3,  "y":2,  "color":"black"},
+        {"x":2,  "y":3,  "color":"black"},
+        {"x":3,  "y":3,  "color":"white"}
+      ],
+      "firstMoves": [{"x":1, "y":2}]
+    },
+    {
+      "id": "A403",
+      "toPlay": "black",
+      "goal": "黑先，边角断点先手（封路后活）",
+      "setup": [
+        {"x":0,  "y":10, "color":"black"},
+        {"x":1,  "y":9,  "color":"black"},
+        {"x":1,  "y":10, "color":"white"}
+      ],
+      "firstMoves": [{"x":0, "y":9}]
+    },
+    {
+      "id": "A404",
+      "toPlay": "black",
+      "goal": "黑先，角部扳粘取先手（两等价点）",
+      "setup": [
+        {"x":3,  "y":1,  "color":"white"},
+        {"x":2,  "y":2,  "color":"black"},
+        {"x":1,  "y":3,  "color":"black"}
+      ],
+      "firstMoves": [{"x":2, "y":1}, {"x":1, "y":2}]
+    }
+  ]
+}
+
