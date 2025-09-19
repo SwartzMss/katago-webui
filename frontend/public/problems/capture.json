@@ -48,7 +48,7 @@
         {"x":13, "y":14, "color":"black"},
         {"x":12, "y":12, "color":"white"}
       ],
-      "firstMoves": [{"x":13, "y":12}]
+      "firstMoves": [{"x":13, "y":12}, {"x":12, "y":13}]
     },
     {
       "id": "C205",
@@ -60,7 +60,7 @@
         {"x":6,  "y":7,  "color":"black"},
         {"x":8,  "y":6,  "color":"white"}
       ],
-      "firstMoves": [{"x":6,  "y":5}]
+      "firstMoves": [{"x":6,  "y":5}, {"x":5,  "y":6}]
     },
     {
       "id": "C206",
@@ -72,7 +72,7 @@
         {"x":8,  "y":13, "color":"black"},
         {"x":7,  "y":11, "color":"black"}
       ],
-      "firstMoves": [{"x":8,  "y":11}]
+      "firstMoves": [{"x":8,  "y":11}, {"x":7,  "y":12}]
     },
     {
       "id": "C207",
@@ -84,7 +84,7 @@
         {"x":5,  "y":11, "color":"black"},
         {"x":4,  "y":9,  "color":"black"}
       ],
-      "firstMoves": [{"x":5,  "y":9}]
+      "firstMoves": [{"x":5,  "y":9}, {"x":4,  "y":10}]
     },
     {
       "id": "C208",
@@ -95,7 +95,7 @@
         {"x":16, "y":3,  "color":"black"},
         {"x":15, "y":4,  "color":"black"}
       ],
-      "firstMoves": [{"x":15, "y":2}]
+      "firstMoves": [{"x":15, "y":2}, {"x":14, "y":3}]
     },
     {
       "id": "C209",
@@ -118,8 +118,7 @@
         {"x":2,  "y":1,  "color":"black"},
         {"x":1,  "y":2,  "color":"black"}
       ],
-      "firstMoves": [{"x":0,  "y":1}]
+      "firstMoves": [{"x":0,  "y":1}, {"x":1,  "y":0}]
     }
   ]
 }
-
