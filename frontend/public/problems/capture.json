@@ -155,30 +155,6 @@
       "firstMoves": [{"x":2, "y":1}]
     },
     {
-      "id": "C215",
-      "toPlay": "black",
-      "goal": "黑先，断点打吃（中腹）",
-      "setup": [
-        {"x":11, "y":13, "color":"white"},
-        {"x":12, "y":13, "color":"black"},
-        {"x":11, "y":12, "color":"black"},
-        {"x":10, "y":13, "color":"white"}
-      ],
-      "firstMoves": [{"x":11, "y":14}]
-    },
-    {
-      "id": "C216",
-      "toPlay": "black",
-      "goal": "黑先，双打吃取先手（中腹）",
-      "setup": [
-        {"x":13, "y":9,  "color":"white"},
-        {"x":14, "y":9,  "color":"black"},
-        {"x":13, "y":10, "color":"black"},
-        {"x":12, "y":8,  "color":"white"}
-      ],
-      "firstMoves": [{"x":13, "y":8}, {"x":12, "y":9}]
-    },
-    {
       "id": "C217",
       "toPlay": "black",
       "goal": "黑先，读两口气（先手打吃）",
