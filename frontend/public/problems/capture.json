@@ -121,17 +121,6 @@
       "firstMoves": [{"x":4, "y":13}, {"x":6, "y":12}]
     },
     {
-      "id": "C213",
-      "toPlay": "black",
-      "goal": "黑先，打吃后收气（两等价点）",
-      "setup": [
-        {"x":7,  "y":6,  "color":"white"},
-        {"x":6,  "y":6,  "color":"black"},
-        {"x":7,  "y":5,  "color":"black"}
-      ],
-      "firstMoves": [{"x":8, "y":6}, {"x":7, "y":7}]
-    },
-    {
       "id": "C214",
       "toPlay": "black",
       "goal": "黑先，角上打吃（抢先）",
