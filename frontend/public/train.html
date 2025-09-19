@@ -60,9 +60,6 @@
           <span id="progress" class="muted" style="margin-left:8px;">—/—</span>
         </div>
         <div class="row nowrap" style="justify-content:flex-end;">
-          <label class="muted" style="display:flex;align-items:center;gap:6px;">
-            <input type="checkbox" id="ttsToggle" /> 语音播报
-          </label>
           <button class="btn btn-secondary" id="prevBtn">上一题</button>
           <button class="btn btn-primary" id="nextBtn">下一题</button>
           <button class="btn btn-secondary" id="resetBtn">重置</button>
@@ -89,9 +86,8 @@
     const nextBtn = document.getElementById('nextBtn');
     const progressEl = document.getElementById('progress');
     const resetBtn = document.getElementById('resetBtn');
-    const answerBtn = document.getElementById('answerBtn');
     const setSelect = document.getElementById('setSelect');
-    const ttsToggle = document.getElementById('ttsToggle');
+    const answerBtn = document.getElementById('answerBtn');
 
     // Model
     let problems = [];
@@ -101,64 +97,7 @@
     let showHint = false;
     let finished = false;
     let autoAdvanceTimer = null; // 正确后自动跳转计时器
-    // TTS（语音播报）
-    const TTS_KEY = 'train_tts_enabled';
-    let ttsEnabled = false;
-    const POSITIVE_LINES = [
-      '太棒了！',
-      '你可真厉害！',
-      '漂亮！',
-      '思路清晰，继续保持！',
-      '稳健的一手！',
-      '这步很妙！',
-      '节奏拿捏住了！',
-      '干得漂亮！',
-      '绝佳落点！',
-      '状态在线！'
-    ];
-    const NEGATIVE_LINES = [
-      '太可惜了。',
-      '差一点点！',
-      '再加油！',
-      '这个点不太好。',
-      '再想一想？',
-      '不急，稳住再来。',
-      '换个思路试试。',
-      '读一读气再下。',
-      '再找找关键点。',
-      '别灰心，继续！'
-    ];
-    const COMPLETE_LINES = [
-      '这一题完成了！继续下一题。',
-      '通关啦，保持状态！',
-      '好棋！下一题见！'
-    ];
-    function randFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-    function speak(text){
-      if(!ttsEnabled) return;
-      if(!('speechSynthesis' in window)) return;
-      try{
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'zh-CN';
-        u.rate = 1.05; u.pitch = 1.0; u.volume = 1.0;
-        window.speechSynthesis.speak(u);
-      }catch(e){ /* 忽略 */ }
-    }
-    function speakPositive(){ speak(randFrom(POSITIVE_LINES)); }
-    function speakNegative(){ speak(randFrom(NEGATIVE_LINES)); }
-    function speakComplete(){ speak(randFrom(COMPLETE_LINES.concat(POSITIVE_LINES))); }
-    function initTTS(){
-      try{ ttsEnabled = (localStorage.getItem(TTS_KEY) === '1'); }catch(_){ ttsEnabled = false; }
-      if(ttsToggle){
-        ttsToggle.checked = ttsEnabled;
-        ttsToggle.addEventListener('change', ()=>{
-          ttsEnabled = !!ttsToggle.checked;
-          try{ localStorage.setItem(TTS_KEY, ttsEnabled ? '1' : '0'); }catch(_){ /* 忽略 */ }
-          if(ttsEnabled){ speak('语音播报已开启'); }
-        });
-      }
-    }
+    // 去除语音播报功能
     // 多步序列支持
     let sequence = null; // 数组：按先黑后白交替，元素为 {x,y} 或 {opts:[{x,y}]}
     let seqStep = 0;     // 当前步索引（0 基），偶数=黑，奇数=白
@@ -363,27 +302,26 @@
         if(seqStep % 2 !== 0){ return; } // 等待系统代白落子
         const step = currentExpectedMoves();
         const ok = (step.opts || []).some(m=>m.x===pt.x && m.y===pt.y);
-        if(!ok){ toast('不对'); speakNegative(); return; }
+        if(!ok){ toast('不对'); return; }
         const res = applyMoveLocal('black', pt.x, pt.y);
-        if(!res.ok){ toast('非法落子'); speakNegative(); return; }
+        if(!res.ok){ toast('非法落子'); return; }
         seqStep += 1;
         autoPlayWhiteIfAny();
-        if(seqStep >= (sequence?.length || 0)) { finished = true; toast('完成'); speakComplete(); scheduleAutoAdvance(); }
+        if(seqStep >= (sequence?.length || 0)) { finished = true; toast('完成'); scheduleAutoAdvance(); }
         drawBoard(); updateStepProgress();
         return;
       }
       // 单步题逻辑
       const color = 'black';
       const res = applyMoveLocal(color, pt.x, pt.y);
-      if(!res.ok){ toast('非法落子'); speakNegative(); return; }
+      if(!res.ok){ toast('非法落子'); return; }
       const prob = problems[idx];
       const view = currentView(prob);
       const correct = (view.firstMoves || []).some(m=>m.x===pt.x && m.y===pt.y);
-      if(correct){ finished = true; toast('正确'); speakPositive(); scheduleAutoAdvance(); }
+      if(correct){ finished = true; toast('正确'); scheduleAutoAdvance(); }
       else {
         stones = stones.filter(s=>!(s.x===pt.x && s.y===pt.y && s.color===color));
         toast('不对');
-        speakNegative();
       }
       drawBoard();
 
@@ -453,7 +391,7 @@
 
     // init
     loadSet('basic');
-    initTTS();
+    // 语音播报已移除
 
     // 无先手切换
   </script>
