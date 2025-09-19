@@ -8,9 +8,7 @@
       "goal": "黑先，补虎口稳固（两等价点）",
       "setup": [
         {"x":3, "y":3, "color":"black"},
-        {"x":4, "y":4, "color":"black"},
-        {"x":4, "y":3, "color":"white"},
-        {"x":3, "y":4, "color":"white"}
+        {"x":4, "y":4, "color":"black"}
       ],
       "firstMoves": [{"x":4, "y":3}, {"x":3, "y":4}]
     },
@@ -45,9 +43,7 @@
       "goal": "黑先，补断点成眼（两等价点）",
       "setup": [
         {"x":6, "y":6, "color":"black"},
-        {"x":7, "y":7, "color":"black"},
-        {"x":7, "y":6, "color":"white"},
-        {"x":6, "y":7, "color":"white"}
+        {"x":7, "y":7, "color":"black"}
       ],
       "firstMoves": [{"x":7, "y":6}, {"x":6, "y":7}]
     },
@@ -57,9 +53,7 @@
       "goal": "黑先，边上补点做活（虎口位）",
       "setup": [
         {"x":2,  "y":10, "color":"black"},
-        {"x":3,  "y":11, "color":"black"},
-        {"x":3,  "y":10, "color":"white"},
-        {"x":2,  "y":11, "color":"white"}
+        {"x":3,  "y":11, "color":"black"}
       ],
       "firstMoves": [{"x":3, "y":10}, {"x":2, "y":11}]
     },
@@ -94,8 +88,6 @@
       "setup": [
         {"x":6,  "y":6,  "color":"black"},
         {"x":7,  "y":7,  "color":"black"},
-        {"x":7,  "y":6,  "color":"white"},
-        {"x":6,  "y":7,  "color":"white"},
         {"x":8,  "y":6,  "color":"white"}
       ],
       "firstMoves": [{"x":7, "y":6}, {"x":6, "y":7}]
@@ -130,9 +122,7 @@
       "goal": "黑先，边上做两眼（虎口位）",
       "setup": [
         {"x":4,  "y":10, "color":"black"},
-        {"x":5,  "y":11, "color":"black"},
-        {"x":5,  "y":10, "color":"white"},
-        {"x":4,  "y":11, "color":"white"}
+        {"x":5,  "y":11, "color":"black"}
       ],
       "firstMoves": [{"x":5, "y":10}, {"x":4, "y":11}]
     },
@@ -142,9 +132,7 @@
       "goal": "黑先，补断做眼（唯一要点）",
       "setup": [
         {"x":15, "y":15, "color":"black"},
-        {"x":16, "y":16, "color":"black"},
-        {"x":16, "y":15, "color":"white"},
-        {"x":15, "y":16, "color":"white"}
+        {"x":16, "y":16, "color":"black"}
       ],
       "firstMoves": [{"x":16, "y":15}]
     }

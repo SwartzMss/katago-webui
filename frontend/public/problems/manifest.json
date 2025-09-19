@@ -5,8 +5,8 @@
     { "key": "A", "label": "提升" }
   ],
   "sets": [
-    { "setId": "basic",   "title": "基础死活",   "level": "E" },
-    { "setId": "capture", "title": "打吃与提子", "level": "E" },
+    { "setId": "capture", "title": "进攻·打吃与提子", "level": "E" },
+    { "setId": "basic",   "title": "防守·活形与补强",   "level": "E" },
     { "setId": "eyes",    "title": "眼形入门",   "level": "E" },
 
     { "setId": "ladder",  "title": "征子识别",   "level": "I" },
@@ -18,6 +18,5 @@
     { "setId": "endgame", "title": "官子入门",   "level": "A" },
     { "setId": "reading", "title": "阅读训练",   "level": "A" }
   ],
-  "default": "basic"
+  "default": "capture"
 }
-

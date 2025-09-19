@@ -149,6 +149,14 @@
       } else {
         moves = view.firstMoves || [];
       }
+      // 仅在空点上显示提示，避免与已存在的白/黑子重叠导致误导
+      const uniq = new Set();
+      moves = moves.filter(m=>{
+        if(!m || typeof m.x!== 'number' || typeof m.y !== 'number') return false;
+        if(stoneAt(m.x, m.y)) return false;
+        const k = m.x+","+m.y;
+        if(uniq.has(k)) return false; uniq.add(k); return true;
+      });
       const teal = 'rgba(46,125,107,1)';
       ctx.setLineDash([6,4]); ctx.lineWidth = 2; ctx.strokeStyle = teal;
       for(const m of moves){
@@ -379,8 +387,9 @@
     setSelect.onchange = async ()=>{ await loadSet(setSelect.value); };
 
     async function loadSet(name){
-      // 简单静态题库
-      const res = await fetch(`/problems/${name}.json`);
+      // 简单静态题库（禁用缓存，避免旧 JSON 残留）
+      const url = `/problems/${name}.json?v=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store' });
       if(!res.ok){ toast('题库加载失败'); return; }
       const data = await res.json();
       problems = data.problems || [];
@@ -392,7 +401,7 @@
       // 动态加载清单并按层级分组渲染下拉
       let manifest = null;
       try {
-        const res = await fetch('/problems/manifest.json');
+        const res = await fetch(`/problems/manifest.json?v=${Date.now()}`, { cache: 'no-store' });
         if(res.ok) manifest = await res.json();
       } catch(e) { /* ignore */ }
       // 回退：若清单加载失败，使用内建列表
@@ -400,8 +409,8 @@
         {key:'E', label:'入门'}, {key:'I', label:'进阶'}, {key:'A', label:'提升'}
       ];
       const fallbackSets = [
-        {setId:'basic', title:'基础死活', level:'E'},
-        {setId:'capture', title:'打吃与提子', level:'E'},
+        {setId:'capture', title:'进攻·打吃与提子', level:'E'},
+        {setId:'basic', title:'防守·活形与补强', level:'E'},
         {setId:'eyes', title:'眼形入门', level:'E'},
         {setId:'ladder', title:'征子识别', level:'I'},
         {setId:'net', title:'枷吃与扑', level:'I'},
@@ -413,7 +422,7 @@
       ];
       const levels = Array.isArray(manifest?.levels) && manifest.levels.length ? manifest.levels : fallbackLevels;
       const sets = Array.isArray(manifest?.sets) && manifest.sets.length ? manifest.sets : fallbackSets;
-      const def = manifest?.default || sets[0]?.setId || 'basic';
+      const def = manifest?.default || sets[0]?.setId || 'capture';
 
       // 构建 optgroup
       setSelect.innerHTML = '';

@@ -1,6 +1,6 @@
 {
   "setId": "basic",
-  "title": "基础死活（入门）",
+  "title": "防守·活形与补强",
   "problems": [
     {
       "id": "P001",
@@ -65,18 +65,6 @@
       "firstMoves": [{"x":11, "y":10}, {"x":10, "y":11}]
     },
     {
-      "id": "P006",
-      "toPlay": "black",
-      "goal": "黑先，边上虎口补强（做两眼）",
-      "setup": [
-        {"x":2,  "y":10, "color":"black"},
-        {"x":3,  "y":11, "color":"black"},
-        {"x":3,  "y":10, "color":"white"},
-        {"x":2,  "y":11, "color":"white"}
-      ],
-      "firstMoves": [{"x":3, "y":10}, {"x":2, "y":11}]
-    },
-    {
       "id": "P007",
       "toPlay": "black",
       "goal": "黑先，中腹点成眼（唯一要点）",
@@ -99,18 +87,7 @@
       ],
       "firstMoves": [{"x":0, "y":13}]
     },
-    {
-      "id": "P009",
-      "toPlay": "black",
-      "goal": "黑先，补断做活（两等价点）",
-      "setup": [
-        {"x":6,  "y":6,  "color":"black"},
-        {"x":7,  "y":7,  "color":"black"},
-        {"x":7,  "y":6,  "color":"white"},
-        {"x":6,  "y":7,  "color":"white"}
-      ],
-      "firstMoves": [{"x":7, "y":6}, {"x":6, "y":7}]
-    },
+    
     {
       "id": "P010",
       "toPlay": "black",

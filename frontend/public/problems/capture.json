@@ -1,6 +1,6 @@
 {
   "setId": "capture",
-  "title": "打吃与提子（气的基础）",
+  "title": "进攻·打吃与提子",
   "problems": [
     {
       "id": "C201",
@@ -121,22 +121,6 @@
       "firstMoves": [{"x":0,  "y":1}, {"x":1,  "y":0}]
     },
     {
-      "id": "C211",
-      "toPlay": "black",
-      "goal": "黑先，两手吃子（演示序列）",
-      "setup": [
-        {"x":10, "y":10, "color":"white"},
-        {"x":9,  "y":10, "color":"black"},
-        {"x":10, "y":9,  "color":"black"},
-        {"x":11, "y":9,  "color":"black"}
-      ],
-      "sequence": [
-        {"x":10, "y":11},
-        {"x":11, "y":10},
-        {"x":9,  "y":11}
-      ]
-    },
-    {
       "id": "C212",
       "toPlay": "black",
       "goal": "黑先，边上双打吃（任选其一）",
@@ -204,21 +188,6 @@
         {"x":15, "y":4,  "color":"black"}
       ],
       "firstMoves": [{"x":16, "y":5}, {"x":15, "y":6}]
-    },
-    {
-      "id": "C218",
-      "toPlay": "black",
-      "goal": "黑先，二步吃子（演示序列）",
-      "setup": [
-        {"x":6,  "y":14, "color":"white"},
-        {"x":5,  "y":14, "color":"black"},
-        {"x":6,  "y":13, "color":"black"}
-      ],
-      "sequence": [
-        {"x":7,  "y":14},
-        {"x":7,  "y":15},
-        {"x":8,  "y":14}
-      ]
     }
   ]
 }
