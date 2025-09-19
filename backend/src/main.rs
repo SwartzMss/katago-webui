@@ -94,7 +94,8 @@ async fn main() {
         .route("/api/game/new", post(game_new))
         .route("/api/game/play", post(game_play))
         .route("/api/game/heartbeat", post(game_heartbeat))
-        .route("/api/game/close", post(game_close));
+        .route("/api/game/close", post(game_close))
+        .route("/api/game/hint", post(game_hint));
 
     let static_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent().unwrap() // project root
@@ -410,6 +411,46 @@ async fn game_play(
         "end": {"finished": false}
     });
     (StatusCode::OK, Json(body))
+}
+
+#[derive(serde::Serialize)]
+struct HintResponse {
+    suggestion: String,
+}
+
+// 为当前人类一方给出建议一手（不改变引擎棋局状态），仅返回坐标
+async fn game_hint(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<GameIdPayload>,
+) -> impl IntoResponse {
+    // 读取必要信息
+    let (engine_opt, human_is_black) = if let Some(gs) = state.game_store.get(&payload.gameId) {
+        (gs.engine.clone(), gs.human_color == "black")
+    } else {
+        return (StatusCode::GONE, Json(serde_json::json!({"error":"GAME_EXPIRED"})));
+    };
+
+    if let Some(engine) = engine_opt {
+        let human_color = if human_is_black { 'B' } else { 'W' };
+        // 使用 genmove + undo，仅提供坐标
+        match engine.send_command(&format!("genmove {}", human_color)).await {
+            Ok(resp) => {
+                let mv = parse_gtp_move(&resp);
+                let mv_lc = mv.to_ascii_lowercase();
+                if mv_lc != "pass" && mv_lc != "resign" { let _ = engine.send_command("undo").await; }
+                let body = HintResponse { suggestion: mv };
+                let val = serde_json::to_value(body).unwrap_or_else(|_| serde_json::json!({"suggestion":""}));
+                return (StatusCode::OK, Json(val));
+            }
+            Err(err) => { tracing::error!(?err, "genmove for hint failed"); }
+        }
+    }
+    // 无引擎/失败占位
+    {
+        let body = HintResponse { suggestion: "Q16".to_string() };
+        let val = serde_json::to_value(body).unwrap_or_else(|_| serde_json::json!({"suggestion":"Q16"}));
+        (StatusCode::OK, Json(val))
+    }
 }
 
 fn parse_gtp_move(resp: &str) -> String {

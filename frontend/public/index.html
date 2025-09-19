@@ -127,6 +127,7 @@
         <div class="btn-group">
           <button id="startBtn" class="btn btn-primary">开始</button>
           <button id="resign" class="btn" disabled>认输</button>
+          <button id="hintBtn" class="btn" title="在当前局面给出建议" disabled>提示</button>
         </div>
       </div>
       <div class="row center" style="grid-column:3;">
@@ -164,6 +165,7 @@
     const startBtn = document.getElementById('startBtn');
     const debugSwitch = document.getElementById('debugSwitch');
     const resignBtn = document.getElementById('resign');
+    const hintBtn = document.getElementById('hintBtn');
     const avatarYouEl = document.querySelector('.avatar.you');
     const avatarAiEl = document.querySelector('.avatar.ai');
     const colorButtons = colorToggle ? Array.from(colorToggle.querySelectorAll('button')) : [];
@@ -201,6 +203,7 @@
     let lastAiMove = null;    // {x,y}
     let aiPulseStartMs = 0;   // 动画起始时间
     let rafId = null;
+    let hintMove = null;      // {x,y} | null
     function getSelectedLevel(){
       return levelSelect ? Number(levelSelect.value) : 2;
     }
@@ -214,8 +217,10 @@
     let caps = { black: 0, white: 0 };
 
     // 轮到谁下：高亮对应头像
+    let currentTurn = null; // 'you' | 'ai' | null
     function setTurn(who){
       // who: 'you' | 'ai' | null
+      currentTurn = who;
       if(avatarYouEl){ avatarYouEl.classList.toggle('turn', who === 'you'); }
       if(avatarAiEl){ avatarAiEl.classList.toggle('turn', who === 'ai'); }
     }
@@ -333,6 +338,19 @@
         ctx.strokeStyle = amber;
         ctx.lineWidth = 3;
         ctx.stroke();
+      }
+      // 提示点标记：青绿色虚线圈
+      if(hintMove){
+        const cx = 32 + hintMove.x*32;
+        const cy = 32 + hintMove.y*32;
+        ctx.save();
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 20, 0, Math.PI*2);
+        ctx.strokeStyle = '#2E7D6B';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
       }
     }
 
@@ -453,6 +471,7 @@
       renderLogs(); // 切换至本局日志（初始为空）
       log(`新开对局: ${gameId}`);
       stones = [];
+      hintMove = null;
       caps = {black:0, white:0};
       updateCaps();
       if(j.engineMove){
@@ -518,6 +537,8 @@
       }
 
       log(`你落子: ${mv}`);
+      // 落子前清除提示
+      hintMove = null;
       const applied = applyMoveLocal(playerColor, coord.x, coord.y);
       if(!applied.ok){
         log('非法落子（自杀禁手），已阻止');
@@ -580,6 +601,7 @@
         if(gameId){ return; }
         startBtn.disabled = true;
         await newGame();
+        if(hintBtn) hintBtn.disabled = false;
       };
     }
     // restart removed
@@ -610,6 +632,7 @@
       if(resignBtn){ resignBtn.disabled = true; resignBtn.classList.remove('btn-primary'); }
       startBtn.disabled = false;
       stones = [];
+      hintMove = null;
       caps = {black:0, white:0};
       updateCaps();
       drawBoard();
@@ -617,6 +640,7 @@
       setTurn(null);
       // 恢复赛前可配置项
       setPreGameControlsDisabled(false);
+      if(hintBtn) hintBtn.disabled = true;
     };
 
     // 清空当前对局日志
@@ -641,6 +665,38 @@
     setTurn(null);
     // 初始允许修改赛前选项
     setPreGameControlsDisabled(false);
+
+    // 提示按钮：在你的回合获取建议点
+    if(hintBtn){
+      hintBtn.disabled = true; // 初始禁用，开局后启用
+      hintBtn.onclick = async () => {
+        if(!gameId){ showToast('请先新开对局'); return; }
+        if(isStartingGame){ showToast('正在开局，请稍候…'); return; }
+        if(isPlayingRequest){ showToast('请等待 AI 应手'); return; }
+        if(currentTurn !== 'you'){ showToast('还没轮到你'); return; }
+        try {
+          const res = await fetch('/api/game/hint', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ gameId }) });
+          if(!res.ok){ showToast('获取提示失败'); return; }
+          const j = await res.json();
+          const mvStr = String(j.suggestion || '').trim();
+          if(!mvStr){ showToast('暂无建议'); return; }
+          const lower = mvStr.toLowerCase();
+          if(lower === 'pass' || lower === 'resign'){
+            showToast(lower === 'pass' ? '建议：虚手' : '建议：认输');
+            hintMove = null; drawBoard();
+            return;
+          }
+          const coord = moveToCoord(mvStr);
+          if(!coord){ showToast('提示坐标解析失败'); return; }
+          hintMove = { x: coord.x, y: coord.y };
+          drawBoard();
+          // 仅展示坐标
+          showToast(`建议：${mvStr}`);
+        } catch (_) {
+          showToast('网络错误');
+        }
+      };
+    }
 
     // 页面关闭/离开时，自动关闭当前对局，避免活动局残留
     function closeGameOnUnload(){
