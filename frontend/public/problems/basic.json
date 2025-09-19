@@ -1,46 +1,12 @@
 {
-  "setId": "basic",
-  "title": "基础死活（入门）",
-  "problems": [
-    {
-      "id": "P001",
-      "size": 19,
-      "toPlay": "black",
-      "goal": "黑先，做活（占角要点）",
-      "setup": [
-        {"x":2,"y":2,"color":"black"},
-        {"x":2,"y":3,"color":"black"},
-        {"x":3,"y":2,"color":"black"},
-        {"x":3,"y":3,"color":"white"},
-        {"x":4,"y":2,"color":"white"},
-        {"x":2,"y":4,"color":"white"}
-      ],
-      "firstMoves": [{"x":3,"y":4}, {"x":4,"y":3}]
-    },
-    {
-      "id": "P002",
-      "size": 19,
-      "toPlay": "black",
-      "goal": "黑先，打吃提一子",
-      "setup": [
-        {"x":10,"y":10,"color":"white"},
-        {"x":9,"y":10,"color":"black"},
-        {"x":10,"y":9,"color":"black"},
-        {"x":11,"y":10,"color":"black"}
-      ],
-      "firstMoves": [{"x":10,"y":11}]
-    },
-    {
-      "id": "P003",
-      "size": 19,
-      "toPlay": "black",
-      "goal": "黑先，打吃先手",
-      "setup": [
-        {"x":16,"y":16,"color":"white"},
-        {"x":17,"y":16,"color":"black"},
-        {"x":16,"y":17,"color":"black"}
-      ],
-      "firstMoves": [{"x":16,"y":15}, {"x":15,"y":16}]
-    }
-  ]
+  "meta": {
+    "id": "basic",
+    "title": "基础死活",
+    "description": "入门到基础层面的角部/边部死活训练题包",
+    "level": "L1-L2",
+    "tags": ["入门", "死活"],
+    "version": 1
+  },
+  "problems": []
 }
+
