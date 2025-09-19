@@ -96,6 +96,7 @@
     let toPlay = 'black';
     let showHint = false;
     let finished = false;
+    let autoAdvanceTimer = null; // 正确后自动跳转计时器
     // 多步序列支持
     let sequence = null; // 数组：按先黑后白交替，元素为 {x,y} 或 {opts:[{x,y}]}
     let seqStep = 0;     // 当前步索引（0 基），偶数=黑，奇数=白
@@ -272,6 +273,7 @@
     }
     function loadProblem(i){
       const p = problems[i]; if(!p) return;
+      if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
       idx = i; showHint=false; finished=false;
       stones = (p.setup || []).map(s=>({x:s.x,y:s.y,color:s.color}));
       applySideUI(p);
@@ -304,7 +306,7 @@
         if(!res.ok){ toast('非法落子'); return; }
         seqStep += 1;
         autoPlayWhiteIfAny();
-        if(seqStep >= (sequence?.length || 0)) { finished = true; toast('完成'); }
+        if(seqStep >= (sequence?.length || 0)) { finished = true; toast('完成'); scheduleAutoAdvance(); }
         drawBoard(); updateStepProgress();
         return;
       }
@@ -315,7 +317,7 @@
       const prob = problems[idx];
       const view = currentView(prob);
       const correct = (view.firstMoves || []).some(m=>m.x===pt.x && m.y===pt.y);
-      if(correct){ finished = true; toast('正确'); }
+      if(correct){ finished = true; toast('正确'); scheduleAutoAdvance(); }
       else {
         stones = stones.filter(s=>!(s.x===pt.x && s.y===pt.y && s.color===color));
         toast('不对');
@@ -333,6 +335,35 @@
       if(!mv) return;
       const res = applyMoveLocal('white', mv.x, mv.y);
       if(res.ok){ seqStep += 1; }
+    }
+
+    function scheduleAutoAdvance(){
+      if(autoAdvanceTimer){ clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+      const isLast = (idx >= problems.length - 1);
+      autoAdvanceTimer = setTimeout(()=>{
+        autoAdvanceTimer = null;
+        if(!isLast){
+          nextProblem();
+        } else {
+          promptSwitchSetIfAny();
+        }
+      }, 1000); // 延时约 1s
+    }
+
+    function promptSwitchSetIfAny(){
+      // 找到下一个题集（按下拉顺序）
+      const options = Array.from(setSelect.options);
+      const curIdx = setSelect.selectedIndex;
+      const nextOpt = (curIdx >= 0 && curIdx < options.length - 1) ? options[curIdx + 1] : null;
+      if(nextOpt){
+        const ok = window.confirm('该题集已完成，是否切换到下一个题集？');
+        if(ok){
+          setSelect.value = nextOpt.value;
+          loadSet(nextOpt.value);
+        }
+      } else {
+        toast('已完成所有题集');
+      }
     }
 
     resetBtn.onclick = ()=> loadProblem(idx);
