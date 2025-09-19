@@ -75,18 +75,6 @@
       "firstMoves": [{"x":8,  "y":11}, {"x":7,  "y":12}]
     },
     {
-      "id": "C207",
-      "toPlay": "black",
-      "goal": "黑先，接不归判断（打吃更好）",
-      "setup": [
-        {"x":5,  "y":10, "color":"white"},
-        {"x":6,  "y":10, "color":"black"},
-        {"x":5,  "y":11, "color":"black"},
-        {"x":4,  "y":9,  "color":"black"}
-      ],
-      "firstMoves": [{"x":5,  "y":9}, {"x":4,  "y":10}]
-    },
-    {
       "id": "C208",
       "toPlay": "black",
       "goal": "黑先，二路夹击后打吃",
