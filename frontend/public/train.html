@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>围棋练习 - KataGo Web</title>
+  <style>
+    :root {
+      --bg: #F6F2E7; --panel-bg: #F9F6EE; --text: #3B3A36; --muted:#6B6A65; --border:#E4DED0; --primary:#2E7D6B; --board-bg:#E6D6B5; --grid:#5F5A52; --star:#4C463F; --accent-amber: rgba(245, 158, 11, 0.45);
+    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+    header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+    .nav { display:flex; gap:10px; }
+    .nav a { color: var(--primary); text-decoration: none; font-weight: 600; padding:6px 10px; border-radius:8px; }
+    .nav a:hover { background:#00000008; }
+    main { display:flex; flex-direction:column; align-items:center; gap:16px; padding:16px; }
+    .panel { border:1px solid var(--border); background:var(--panel-bg); border-radius:10px; padding:12px; width: 640px; max-width: 90vw; }
+    #board { width:640px; height:640px; background: var(--board-bg); border:1px solid var(--border); }
+    .rows { display:grid; grid-template-columns: auto 1fr; gap:10px; align-items:center; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .row.nowrap { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
+    .btn { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text); cursor: pointer; transition: background .15s ease, filter .15s ease, color .15s ease, border-color .15s ease; }
+    .btn:hover { filter: brightness(1.03); }
+    .btn:active { filter: brightness(0.98); }
+    .btn-primary { background: var(--primary); color:#fff; border-color: var(--primary); }
+    .btn-secondary { color: var(--primary); border-color: var(--primary); background: #fff; }
+    .btn-secondary:hover { background: rgba(46,125,107,0.06); }
+    .btn-accent { color: #B46A00; border-color: #B46A00; background: #fff; }
+    .btn-accent:hover { background: rgba(180,106,0,0.06); }
+    .btn-accent.active { background: #B46A00; color: #fff; border-color: #B46A00; }
+    .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    .muted { color: var(--muted); font-size: 13px; }
+    #goal { font-weight: 600; }
+    #hint { color:#9a6a00; }
+    #toast { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.98); background: rgba(60,52,40,0.92); color:#FDFBF6; padding: 10px 16px; border-radius: 10px; box-shadow: 0 6px 20px #0000001f; opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease; z-index: 9999; font-size:14px; }
+    #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    /* 先手方切换样式与对局页一致 */
+    .toggle { display:inline-flex; border: 1px solid #D6CEBE; border-radius: 10px; overflow: hidden; }
+    .toggle button { padding: 8px 12px; border: 0; background: #fff; cursor: pointer; color: var(--text); }
+    .toggle button.active { background: var(--primary); color: #fff; }
+  </style>
+</head>
+<body>
+  <div id="toast"></div>
+  <header>
+    <div>KataGo Web</div>
+    <nav class="nav">
+      <a href="/" title="返回对局">对局</a>
+    </nav>
+  </header>
+  <main>
+    <div class="panel">
+      <div class="rows">
+        <div class="row" style="justify-content:flex-start;">
+          <label for="setSelect">题集：</label>
+          <select id="setSelect">
+            <option value="basic">基础死活</option>
+          </select>
+          <span id="progress" class="muted" style="margin-left:8px;">—/—</span>
+        </div>
+        <div class="row nowrap" style="justify-content:flex-end;">
+          <button class="btn btn-secondary" id="prevBtn">上一题</button>
+          <button class="btn btn-primary" id="nextBtn">下一题</button>
+          <button class="btn btn-secondary" id="resetBtn">重置</button>
+          <button class="btn btn-accent" id="hintBtn" title="在棋盘上标出提示点" aria-pressed="false">提示</button>
+        </div>
+      </div>
+      <!-- 先手固定为黑，去掉黑/白切换 -->
+      <div class="row" style="margin-top:8px; gap:12px;">
+        <div id="goal">目标：—</div>
+      </div>
+      <!-- 移除文字提示，避免布局抖动；提示以棋盘高亮方式呈现 -->
+    </div>
+    <canvas id="board" width="640" height="640"></canvas>
+  </main>
+  <script>
+    // UI refs
+    const board = document.getElementById('board');
+    const ctx = board.getContext('2d');
+    const goalEl = document.getElementById('goal');
+    // 文字提示已移除，采用棋盘高亮
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressEl = document.getElementById('progress');
+    const resetBtn = document.getElementById('resetBtn');
+    const answerBtn = document.getElementById('answerBtn');
+    const setSelect = document.getElementById('setSelect');
+
+    // Model
+    let problems = [];
+    let idx = 0;
+    let stones = []; // {x,y,color}
+    let toPlay = 'black';
+    let showHint = false;
+    let finished = false;
+    // 训练默认黑先
+
+    function toast(msg, ms=1200){
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), ms);
+    }
+
+    // Board utilities (reuse from game page, simplified)
+    function drawBoard(){
+      ctx.clearRect(0,0,640,640);
+      // background
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--board-bg') || '#E6D6B5';
+      ctx.fillRect(0,0,640,640);
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid') || '#5F5A52';
+      ctx.lineWidth = 1;
+      for(let i=0;i<19;i++){
+        const p = 32 + i*32; ctx.beginPath(); ctx.moveTo(32,p); ctx.lineTo(608,p); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(p,32); ctx.lineTo(p,608); ctx.stroke();
+      }
+      drawStarPoints();
+      drawStones();
+      if(showHint) drawHintMarkers();
+    }
+    function drawStarPoints(){
+      const pts=[3,9,15]; const star = getComputedStyle(document.documentElement).getPropertyValue('--star') || '#4C463F';
+      ctx.fillStyle = star;
+      for(const i of pts){ for(const j of pts){ const cx=32+i*32, cy=32+j*32; ctx.beginPath(); ctx.arc(cx,cy,2.8,0,Math.PI*2); ctx.fill(); } }
+    }
+    function drawStones(){
+      for(const s of stones){
+        const cx = 32 + s.x*32, cy = 32 + s.y*32;
+        ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2);
+        const g = ctx.createRadialGradient(cx-6, cy-6, 2, cx, cy, 16);
+        if(s.color==='black'){ g.addColorStop(0,'#666'); g.addColorStop(1,'#111'); } else { g.addColorStop(0,'#fff'); g.addColorStop(1,'#E9E3D6'); }
+        ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle='#00000022'; ctx.stroke();
+      }
+    }
+    function drawHintMarkers(){
+      const prob = problems[idx]; if(!prob) return; const view = currentView(prob); const moves = view.firstMoves || [];
+      const teal = 'rgba(46,125,107,1)';
+      ctx.setLineDash([6,4]); ctx.lineWidth = 2; ctx.strokeStyle = teal;
+      for(const m of moves){
+        // 幽灵棋子：半透明，颜色为当前先手色
+        drawGhostStone(m.x, m.y, toPlay);
+        const cx=32+m.x*32, cy=32+m.y*32;
+        ctx.beginPath(); ctx.arc(cx,cy,18,0,Math.PI*2); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+    function drawGhostStone(x,y,color){
+      const cx = 32 + x*32, cy = 32 + y*32;
+      ctx.save();
+      ctx.globalAlpha = color==='black' ? 0.45 : 0.35;
+      ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2);
+      const g = ctx.createRadialGradient(cx-6, cy-6, 2, cx, cy, 16);
+      if(color==='black'){ g.addColorStop(0,'#666'); g.addColorStop(1,'#111'); } else { g.addColorStop(0,'#fff'); g.addColorStop(1,'#E9E3D6'); }
+      ctx.fillStyle = g; ctx.fill();
+      ctx.restore();
+    }
+    function boardCoordFromPixel(px, py){
+      const x = Math.round((px-32)/32); const y = Math.round((py-32)/32);
+      if(x<0||x>18||y<0||y>18) return null; return {x,y};
+    }
+    function stoneAt(x,y){ return stones.find(s=>s.x===x && s.y===y) || null; }
+    function neighbors(x,y){ const a=[]; if(x>0)a.push({x:x-1,y}); if(x<18)a.push({x:x+1,y}); if(y>0)a.push({x,y:y-1}); if(y<18)a.push({x,y:y+1}); return a; }
+    function groupAndLiberties(x,y){
+      const c = stoneAt(x,y)?.color;
+      if(!c) return {group:[], liberties:new Set()};
+      const key = (p)=>p.x+','+p.y;
+      const seen = new Set([key({x,y})]);
+      const g = [{x,y}];
+      const libs = new Set();
+      const q = [{x,y}];
+      while(q.length){
+        const p = q.pop();
+        for(const nb of neighbors(p.x,p.y)){
+          const s = stoneAt(nb.x,nb.y);
+          if(!s){ libs.add(key(nb)); continue; }
+          if(s.color===c){
+            const k = key(nb);
+            if(!seen.has(k)){
+              seen.add(k);
+              g.push(nb);
+              q.push(nb);
+            }
+          }
+        }
+      }
+      return {group:g, liberties:libs};
+    }
+    function removeGroup(g){ const set=new Set(g.map(p=>p.x+','+p.y)); stones = stones.filter(s=>!set.has(s.x+','+s.y)); }
+    function applyMoveLocal(color,x,y){ if(stoneAt(x,y)) return {ok:false,captures:0}; stones.push({x,y,color}); const opp=color==='black'?'white':'black'; let cap=0; for(const nb of neighbors(x,y)){ const s=stoneAt(nb.x,nb.y); if(s && s.color===opp){ const {group,liberties}=groupAndLiberties(nb.x,nb.y); if(librariesSize(liberties)===0){ cap+=group.length; removeGroup(group); } } } const self=groupAndLiberties(x,y); if(librariesSize(self.liberties)===0){ stones = stones.filter(s=>!(s.x===x && s.y===y && s.color===color)); return {ok:false,captures:0}; } return {ok:true,captures:cap}; }
+    function librariesSize(libs){ return typeof libs.size === 'number' ? libs.size : Array.from(libs).length; }
+
+    function hasModes(p){ return p && p.modes && (p.modes.black || p.modes.white); }
+    function currentView(p){
+      // 固定黑先：若题目提供 modes.black 则优先使用；否则退回单模式字段；最后默认黑先
+      if(hasModes(p) && p.modes.black){
+        const m = p.modes.black;
+        return {
+          toPlay: 'black',
+          goal: m.goal || p.goal || '',
+          firstMoves: m.firstMoves || [],
+          hint: m.hint || p.hint || '',
+          successHint: m.successHint || p.successHint || ''
+        };
+      }
+      return {
+        toPlay: 'black',
+        goal: p.goal || '',
+        firstMoves: p.firstMoves || [],
+        hint: p.hint || '',
+        successHint: p.successHint || ''
+      };
+    }
+    function applySideUI(_p){ /* 去掉先手切换：不显示任何控件 */ }
+    function updateProgressUI(){
+      if(!problems.length){
+        progressEl.textContent = '—/—';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        // 样式：不可用时上一题为次要色
+        prevBtn.classList.remove('btn-primary');
+        prevBtn.classList.add('btn-secondary');
+        return;
+      }
+      progressEl.textContent = `${idx+1}/${problems.length}`;
+      const prevDisabled = (idx === 0);
+      const nextDisabled = (idx === problems.length - 1);
+      prevBtn.disabled = prevDisabled;
+      nextBtn.disabled = nextDisabled;
+      // 当可以点击时，上一题使用主色样式以提高可见性
+      if(!prevDisabled){
+        prevBtn.classList.remove('btn-secondary');
+        prevBtn.classList.add('btn-primary');
+      } else {
+        prevBtn.classList.remove('btn-primary');
+        prevBtn.classList.add('btn-secondary');
+      }
+    }
+    function loadProblem(i){
+      const p = problems[i]; if(!p) return;
+      idx = i; showHint=false; finished=false;
+      stones = (p.setup || []).map(s=>({x:s.x,y:s.y,color:s.color}));
+      applySideUI(p);
+      const view = currentView(p);
+      toPlay = view.toPlay || 'black';
+      goalEl.textContent = '目标：' + (view.goal || '—');
+      drawBoard();
+      updateProgressUI();
+    }
+
+    function nextProblem(){ const ni = Math.min(idx+1, Math.max(0, problems.length-1)); loadProblem(ni); }
+    function prevProblem(){ const pi = Math.max(idx-1, 0); loadProblem(pi); }
+
+    board.addEventListener('click', (e)=>{
+      if(!problems.length || finished) return;
+      const rect = board.getBoundingClientRect();
+      const pt = boardCoordFromPixel(e.clientX-rect.left, e.clientY-rect.top);
+      if(!pt) return;
+      const color = toPlay;
+      const res = applyMoveLocal(color, pt.x, pt.y);
+      if(!res.ok){ toast('非法落子'); return; }
+      const prob = problems[idx];
+      const view = currentView(prob);
+      const correct = (view.firstMoves || []).some(m=>m.x===pt.x && m.y===pt.y);
+      if(correct){
+        finished = true; toast('正确');
+      } else {
+        // revert wrong move but给出提示
+        stones = stones.filter(s=>!(s.x===pt.x && s.y===pt.y && s.color===color));
+        // 错误不自动提示，由用户主动点击“提示”
+        toast('不对');
+      }
+      // 无论正误，统一重绘：正确时保留落子，错误时已回退
+      drawBoard();
+
+    });
+
+    resetBtn.onclick = ()=> loadProblem(idx);
+    nextBtn.onclick = ()=> nextProblem();
+    prevBtn.onclick = ()=> prevProblem();
+    const hintBtn = document.getElementById('hintBtn');
+    hintBtn.onclick = ()=>{
+      showHint = !showHint;
+      hintBtn.classList.toggle('active', showHint);
+      hintBtn.setAttribute('aria-pressed', showHint ? 'true' : 'false');
+      drawBoard();
+    };
+    setSelect.onchange = async ()=>{ await loadSet(setSelect.value); };
+
+    async function loadSet(name){
+      // 简单静态题库
+      const res = await fetch(`/problems/${name}.json`);
+      if(!res.ok){ toast('题库加载失败'); return; }
+      const data = await res.json();
+      problems = data.problems || [];
+      if(!problems.length){ toast('题库为空'); return; }
+      loadProblem(0);
+    }
+
+    // init
+    loadSet('basic');
+
+    // 无先手切换
+  </script>
+</body>
+</html>

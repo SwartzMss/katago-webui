@@ -1,0 +1,103 @@
+2025-09-15 23:16:37+0800: Running with following config:
+allowResignation = true
+chosenMoveTemperatureEarly = 0.35
+chosenMoveTemperatureHalflife = 15
+lagBuffer = 1.0
+logAllGTPCommunication = true
+logDir = gtp_logs
+logSearchInfo = true
+logSearchInfoForChosenMove = false
+logToStderr = false
+maxTime = 2.50
+maxTimePondering = 60.0
+maxVisits = 3000
+numSearchThreads = 6
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.93
+rootPolicyTemperature = 0.25
+rules = chinese
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+
+2025-09-15 23:16:37+0800: GTP Engine starting...
+2025-09-15 23:16:37+0800: KataGo v1.16.3
+2025-09-15 23:16:37+0800: Using Chinese rules initially, unless GTP/GUI overrides this
+2025-09-15 23:16:37+0800: Using 6 CPU thread(s) for search
+2025-09-15 23:16:37+0800: nnRandSeed0 = 641503023157911197
+2025-09-15 23:16:37+0800: After dedups: nnModelFile0 = /home/swartz/WorkSpace/katago-webui/katago-cuda/kata1-b18.bin.gz useFP16 auto useNHWC auto
+2025-09-15 23:16:37+0800: Initializing neural net buffer to be size 19 * 19 exactly
+2025-09-15 23:16:38+0800: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2025-09-15 23:16:38+0800: Cuda backend thread 0: Model version 14 useFP16 = true useNHWC = true
+2025-09-15 23:16:38+0800: Cuda backend thread 0: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-15 23:16:38+0800: Loaded neural net with nnXLen 19 nnYLen 19
+2025-09-15 23:16:38+0800: Initializing board with boardXSize 19 boardYSize 19
+2025-09-15 23:16:38+0800: Loaded config /home/swartz/WorkSpace/katago-webui/katago-cuda/default_gtp.cfg and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides
+2025-09-15 23:16:38+0800: Loaded model /home/swartz/WorkSpace/katago-webui/katago-cuda/kata1-b18.bin.gz
+2025-09-15 23:16:38+0800: Config override: maxVisits = 3000
+2025-09-15 23:16:38+0800: Config override: maxTime = 2.50
+2025-09-15 23:16:38+0800: Config override: rootPolicyTemperature = 0.25
+2025-09-15 23:16:38+0800: Config override: chosenMoveTemperatureEarly = 0.35
+2025-09-15 23:16:38+0800: Config override: chosenMoveTemperatureHalflife = 15
+2025-09-15 23:16:38+0800: Config override: allowResignation = true
+2025-09-15 23:16:38+0800: Config override: resignThreshold = -0.93
+2025-09-15 23:16:38+0800: Config override: rules = chinese
+2025-09-15 23:16:38+0800: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-15 23:16:38+0800: GTP ready, beginning main protocol loop
+2025-09-15 23:16:38+0800: Controller: boardsize 19
+2025-09-15 23:16:38+0800: = 
+2025-09-15 23:16:38+0800: Controller: komi 7.5
+2025-09-15 23:16:38+0800: = 
+2025-09-15 23:16:38+0800: Controller: clear_board
+2025-09-15 23:16:38+0800: = 
+2025-09-15 23:16:39+0800: Controller: play B J18
+2025-09-15 23:16:39+0800: = 
+2025-09-15 23:16:39+0800: Controller: genmove W
+2025-09-15 23:16:42+0800: MoveNum: 1 HASH: 43DE7E9433D428060265CCBD48052E26
+   A B C D E F G H J K L M N O P Q R S T
+19 . . . . . . . . . . . . . . . . . . .
+18 . . . . . . . . X1. . . . . . . . . .
+17 . . . . . . . . . . . . . . . . . . .
+16 . . @ . . . . . . . . . . . . . . . .
+15 . . . . . . . . . . . . . . . . . . .
+14 . . . . . . . . . . . . . . . . . . .
+13 . . . . . . . . . . . . . . . . . . .
+12 . . . . . . . . . . . . . . . . . . .
+11 . . . . . . . . . . . . . . . . . . .
+10 . . . . . . . . . . . . . . . . . . .
+ 9 . . . . . . . . . . . . . . . . . . .
+ 8 . . . . . . . . . . . . . . . . . . .
+ 7 . . . . . . . . . . . . . . . . . . .
+ 6 . . . . . . . . . . . . . . . . . . .
+ 5 . . . . . . . . . . . . . . . . . . .
+ 4 . . . . . . . . . . . . . . . . . . .
+ 3 . . . . . . . . . . . . . . . . . . .
+ 2 . . . . . . . . . . . . . . . . . . .
+ 1 . . . . . . . . . . . . . . . . . . .
+
+koSIMPLEscoreAREAtaxNONEsui0whbNfpok1komi7.5
+Time taken: 2.50824
+Root visits: 2302
+New playouts: 2302
+NN rows: 2216
+NN batches: 739
+NN avg batch size: 2.99865
+PV: C16 Q16 Q4 C4 E17 F3 R14 O16 R17 R16 S16 S15 S17 S14 P18 R13 N17 R6 O3 R4 R3 S3 R2
+Tree:
+: T  57.53c W  56.00c S   1.73c ( +4.3 L  +2.8) N    2302  --  C16 Q16 Q4 C4 E17 F3 R14
+---White(^)---
+C16 : T  57.55c W  56.02c S   1.74c ( +4.3 L  +2.8) LCB   57.02c P 99.63% WF 4453.7 PSV    4453 N    2231  --  C16 Q16 Q4 C4 E17 F3 R14 O16
+D16 : T  57.57c W  55.99c S   1.79c ( +4.4 L  +2.8) LCB   55.76c P  0.27% WF  67.8 PSV      12 N      33  --  D16 Q16 Q4 D4 C3 C4 D3 F3
+R16 : T  57.31c W  55.36c S   1.65c ( +4.2 L  +2.7) LCB   51.98c P  0.01% WF  29.6 PSV       0 N      14  --  R16 C16 D4 Q4 O17 E16 R3
+D17 : T  56.74c W  54.64c S   1.69c ( +4.3 L  +2.8) LCB   51.72c P  0.00% WF  25.3 PSV       0 N      13  --  D17 Q16 Q4 D4 C14 R3
+Q16 : T  55.01c W  53.86c S   1.56c ( +4.2 L  +2.7) LCB   34.95c P  0.09% WF  11.7 PSV       0 N       6  --  Q16 C16 D4 Q4
+Q17 : T  53.89c W  52.93c S   1.47c ( +4.1 L  +2.7) LCB  -20.32c P  0.00% WF   4.8 PSV       0 N       3  --  Q17 C16 D4
+
+2025-09-15 23:16:42+0800: = C16
+2025-09-15 23:16:42+0800: Controller: quit
+2025-09-15 23:16:42+0800: Quit requested by controller
+2025-09-15 23:16:42+0800: = 
+2025-09-15 23:16:42+0800: GPU -1 finishing, processed 2216 rows 739 batches
+2025-09-15 23:16:42+0800: All cleaned up, quitting

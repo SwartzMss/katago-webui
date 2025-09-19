@@ -1,0 +1,194 @@
+2025-09-16 09:57:28+0800: Running with following config:
+allowResignation = false
+chosenMoveTemperatureEarly = 0.80
+chosenMoveTemperatureHalflife = 26
+lagBuffer = 1.0
+logAllGTPCommunication = true
+logDir = gtp_logs
+logSearchInfo = true
+logSearchInfoForChosenMove = false
+logToStderr = false
+maxTime = 0.55
+maxTimePondering = 60.0
+maxVisits = 220
+numSearchThreads = 6
+ponderingEnabled = false
+resignConsecTurns = 3
+resignThreshold = -0.90
+rootPolicyTemperature = 1.10
+rules = chinese
+searchFactorAfterOnePass = 0.50
+searchFactorAfterTwoPass = 0.25
+searchFactorWhenWinning = 0.40
+searchFactorWhenWinningThreshold = 0.95
+
+2025-09-16 09:57:28+0800: GTP Engine starting...
+2025-09-16 09:57:28+0800: KataGo v1.16.3
+2025-09-16 09:57:28+0800: Using Chinese rules initially, unless GTP/GUI overrides this
+2025-09-16 09:57:28+0800: Using 6 CPU thread(s) for search
+2025-09-16 09:57:28+0800: nnRandSeed0 = 8197437194115933930
+2025-09-16 09:57:28+0800: After dedups: nnModelFile0 = /home/swartz/WorkSpace/katago-webui/katago-cuda/kata1-b18.bin.gz useFP16 auto useNHWC auto
+2025-09-16 09:57:28+0800: Initializing neural net buffer to be size 19 * 19 exactly
+2025-09-16 09:57:29+0800: Cuda backend thread 0: Found GPU NVIDIA GeForce RTX 3090 memory 25769279488 compute capability major 8 minor 6
+2025-09-16 09:57:29+0800: Cuda backend thread 0: Model version 14 useFP16 = true useNHWC = true
+2025-09-16 09:57:29+0800: Cuda backend thread 0: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-16 09:57:29+0800: Loaded neural net with nnXLen 19 nnYLen 19
+2025-09-16 09:57:29+0800: Initializing board with boardXSize 19 boardYSize 19
+2025-09-16 09:57:29+0800: Loaded config /home/swartz/WorkSpace/katago-webui/katago-cuda/default_gtp.cfg and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides and/or command-line and query overrides
+2025-09-16 09:57:29+0800: Loaded model /home/swartz/WorkSpace/katago-webui/katago-cuda/kata1-b18.bin.gz
+2025-09-16 09:57:29+0800: Config override: maxVisits = 220
+2025-09-16 09:57:29+0800: Config override: maxTime = 0.55
+2025-09-16 09:57:29+0800: Config override: rootPolicyTemperature = 1.10
+2025-09-16 09:57:29+0800: Config override: chosenMoveTemperatureEarly = 0.80
+2025-09-16 09:57:29+0800: Config override: chosenMoveTemperatureHalflife = 26
+2025-09-16 09:57:29+0800: Config override: allowResignation = false
+2025-09-16 09:57:29+0800: Config override: rules = chinese
+2025-09-16 09:57:29+0800: Model name: kata1-b18c384nbt-s9996604416-d4316597426
+2025-09-16 09:57:29+0800: GTP ready, beginning main protocol loop
+2025-09-16 09:57:29+0800: Controller: boardsize 19
+2025-09-16 09:57:29+0800: = 
+2025-09-16 09:57:29+0800: Controller: komi 7.5
+2025-09-16 09:57:29+0800: = 
+2025-09-16 09:57:29+0800: Controller: clear_board
+2025-09-16 09:57:29+0800: = 
+2025-09-16 09:57:30+0800: Controller: play B K16
+2025-09-16 09:57:30+0800: = 
+2025-09-16 09:57:30+0800: Controller: genmove W
+2025-09-16 09:57:31+0800: MoveNum: 1 HASH: 625E5BA3EA829E6A5A6E972A4FD1C304
+   A B C D E F G H J K L M N O P Q R S T
+19 . . . . . . . . . . . . . . . . . . .
+18 . . . . . . . . . . . . . . . . . . .
+17 . . . . . . . . . . . . . . . . . . .
+16 . . . @ . . . . . X1. . . . . . . . .
+15 . . . . . . . . . . . . . . . . . . .
+14 . . . . . . . . . . . . . . . . . . .
+13 . . . . . . . . . . . . . . . . . . .
+12 . . . . . . . . . . . . . . . . . . .
+11 . . . . . . . . . . . . . . . . . . .
+10 . . . . . . . . . . . . . . . . . . .
+ 9 . . . . . . . . . . . . . . . . . . .
+ 8 . . . . . . . . . . . . . . . . . . .
+ 7 . . . . . . . . . . . . . . . . . . .
+ 6 . . . . . . . . . . . . . . . . . . .
+ 5 . . . . . . . . . . . . . . . . . . .
+ 4 . . . . . . . . . . . . . . . . . . .
+ 3 . . . . . . . . . . . . . . . . . . .
+ 2 . . . . . . . . . . . . . . . . . . .
+ 1 . . . . . . . . . . . . . . . . . . .
+
+koSIMPLEscoreAREAtaxNONEsui0whbNfpok1komi7.5
+Time taken: 0.37671
+Root visits: 225
+New playouts: 225
+NN rows: 216
+NN batches: 73
+NN avg batch size: 2.9589
+PV: D16 R16 Q4 D4 P17 Q17 P16 Q14 M16
+Tree:
+: T  34.70c W  33.79c S   0.95c ( +2.2 L  +1.4) N     225  --  D16 R16 Q4 D4 P17 Q17 P16
+---White(^)---
+D16 : T  35.35c W  34.40c S   0.99c ( +2.3 L  +1.4) LCB   34.16c P 16.46% WF 166.3 PSV     166 N      62  --  D16 R16 Q4 D4 P17 Q17 P16 Q14
+C16 : T  35.35c W  34.23c S   1.01c ( +2.3 L  +1.5) LCB   34.07c P  8.33% WF 156.7 PSV      83 N      59  --  C16 R16 Q4 D4 F17 R3 Q3 R4
+D17 : T  34.53c W  33.56c S   0.91c ( +2.2 L  +1.4) LCB   32.84c P  9.78% WF  99.3 PSV      46 N      38  --  D17 R16 Q4 D4 P17 Q17 P16 Q14
+D4  : T  34.33c W  33.52c S   0.91c ( +2.2 L  +1.4) LCB   32.66c P  2.38% WF  95.8 PSV       9 N      37  --  D4 Q16 D16 Q4 R3 R4 Q3
+D3  : T  32.89c W  32.53c S   0.83c ( +2.1 L  +1.4) LCB   30.03c P  1.65% WF  48.8 PSV       3 N      19  --  D3 R16 D16 Q4 P17
+C4  : T  31.80c W  31.42c S   0.76c ( +2.0 L  +1.3) LCB   22.94c P  1.64% WF  23.4 PSV       2 N       9  --  C4 Q16 D16 Q4 F3
+
+2025-09-16 09:57:31+0800: = D16
+2025-09-16 09:57:33+0800: Controller: play B H15
+2025-09-16 09:57:33+0800: = 
+2025-09-16 09:57:33+0800: Controller: genmove W
+2025-09-16 09:57:33+0800: MoveNum: 3 HASH: 4A08F03F137DDEF3EF06AE586EA82F27
+   A B C D E F G H J K L M N O P Q R S T
+19 . . . . . . . . . . . . . . . . . . .
+18 . . . . . . . . . . . . . . . . . . .
+17 . . . . . . . . . . . . . . . . . . .
+16 . . . O2. . . . . X1. . . . . @ . . .
+15 . . . . . . . X3. . . . . . . . . . .
+14 . . . . . . . . . . . . . . . . . . .
+13 . . . . . . . . . . . . . . . . . . .
+12 . . . . . . . . . . . . . . . . . . .
+11 . . . . . . . . . . . . . . . . . . .
+10 . . . . . . . . . . . . . . . . . . .
+ 9 . . . . . . . . . . . . . . . . . . .
+ 8 . . . . . . . . . . . . . . . . . . .
+ 7 . . . . . . . . . . . . . . . . . . .
+ 6 . . . . . . . . . . . . . . . . . . .
+ 5 . . . . . . . . . . . . . . . . . . .
+ 4 . . . . . . . . . . . . . . . . . . .
+ 3 . . . . . . . . . . . . . . . . . . .
+ 2 . . . . . . . . . . . . . . . . . . .
+ 1 . . . . . . . . . . . . . . . . . . .
+
+koSIMPLEscoreAREAtaxNONEsui0whbNfpok1komi7.5
+Time taken: 0.290691
+Root visits: 224
+New playouts: 224
+NN rows: 223
+NN batches: 75
+NN avg batch size: 2.97333
+PV: Q16 D4 Q4 C14 F17 R3 Q3 R4 Q5 S6
+Tree:
+: T  72.05c W  69.87c S   2.42c ( +6.0 L  +3.9) N     224  --  Q16 D4 Q4 C14 F17 R3 Q3
+---White(^)---
+Q16 : T  73.66c W  71.08c S   2.60c ( +6.2 L  +4.0) LCB   72.25c P 52.55% WF 230.6 PSV     228 N     108  --  Q16 D4 Q4 C14 F17 R3 Q3 R4
+Q17 : T  72.05c W  69.82c S   2.42c ( +6.0 L  +3.9) LCB   70.28c P 25.51% WF 127.6 PSV      57 N      61  --  Q17 D4 Q4 C14 C3 C4 D3 E4
+R16 : T  70.31c W  68.92c S   2.20c ( +5.8 L  +3.8) LCB   67.83c P 10.10% WF  67.5 PSV      14 N      33  --  R16 D4 Q4 P16 P17 O17 Q17 O16
+Q4  : T  65.18c W  63.91c S   1.68c ( +5.3 L  +3.4) LCB   54.02c P  1.54% WF  15.5 PSV       1 N       8  --  Q4 Q17 R15 D4
+D4  : T  64.67c W  63.56c S   1.61c ( +5.2 L  +3.4) LCB   21.67c P  1.45% WF   8.3 PSV       1 N       4  --  D4 Q17 Q3
+R17 : T  67.32c W  66.23c S   1.95c ( +5.5 L  +3.6) LCB   58.17c P  0.92% WF  15.5 PSV       0 N       9  --  R17 D4 Q4 C14
+
+2025-09-16 09:57:33+0800: = Q16
+2025-09-16 09:57:35+0800: Controller: play B K14
+2025-09-16 09:57:35+0800: = 
+2025-09-16 09:57:35+0800: Controller: genmove W
+2025-09-16 09:57:35+0800: MoveNum: 5 HASH: 2621293BBF881B2B62BE5B71E182F224
+   A B C D E F G H J K L M N O P Q R S T
+19 . . . . . . . . . . . . . . . . . . .
+18 . . . . . . . . . . . . . . . . . . .
+17 . . . . . . . . . . . . . . . . . . .
+16 . . . O . . . . . X . . . . . O2. . .
+15 . . . . . . . X1. . . . . . . . . . .
+14 . . . . . . . . . X3. . . . . . . . .
+13 . . . . . . . . . . . . . . . . . . .
+12 . . . . . . . . . . . . . . . . . . .
+11 . . . . . . . . . . . . . . . . . . .
+10 . . . . . . . . . . . . . . . . . . .
+ 9 . . . . . . . . . . . . . . . . . . .
+ 8 . . . . . . . . . . . . . . . . . . .
+ 7 . . . . . . . . . . . . . . . . . . .
+ 6 . . . . . . . . . . . . . . . . . . .
+ 5 . . . . . . . . . . . . . . . . . . .
+ 4 . . . @ . . . . . . . . . . . . . . .
+ 3 . . . . . . . . . . . . . . . . . . .
+ 2 . . . . . . . . . . . . . . . . . . .
+ 1 . . . . . . . . . . . . . . . . . . .
+
+koSIMPLEscoreAREAtaxNONEsui0whbNfpok1komi7.5
+Time taken: 0.253286
+Root visits: 225
+New playouts: 225
+NN rows: 220
+NN batches: 74
+NN avg batch size: 2.97297
+PV: D4 Q4 R3 Q3 R4 R6 R5 Q5 S6 C14 B16
+Tree:
+: T  95.45c W  91.65c S   3.83c (+10.6 L  +7.5) N     225  --  D4 Q4 R3 Q3 R4 R6 R5
+---White(^)---
+D4  : T  96.03c W  91.99c S   3.92c (+10.7 L  +7.6) LCB   95.01c P  8.39% WF  92.7 PSV     187 N      37  --  D4 Q4 R3 Q3 R4 R6 R5 Q5
+D3  : T  95.46c W  91.59c S   3.88c (+10.7 L  +7.6) LCB   94.41c P 14.60% WF  93.7 PSV      94 N      38  --  D3 Q4 C6 R14 O17 R17 R16
+C4  : T  95.50c W  91.63c S   3.89c (+10.7 L  +7.6) LCB   94.55c P 14.63% WF  91.4 PSV      92 N      37  --  C4 Q4 F3 R14 O17 R17 S15
+Q3  : T  95.39c W  91.56c S   3.82c (+10.6 L  +7.5) LCB   94.22c P  9.81% WF  88.6 PSV      60 N      36  --  Q3 D4 R6 C13 F17 B17
+Q4  : T  95.56c W  91.77c S   3.85c (+10.6 L  +7.6) LCB   94.31c P  5.81% WF  69.8 PSV      40 N      28  --  Q4 D4 C3 C4 D3 F3
+R4  : T  94.78c W  91.29c S   3.66c (+10.5 L  +7.4) LCB   92.70c P  8.18% WF  48.1 PSV      34 N      20  --  R4 D4 O3 C13 C15 D18
+E4  : T  95.34c W  91.73c S   3.78c (+10.6 L  +7.4) LCB   84.26c P  1.70% WF  19.5 PSV      10 N       8  --  E4 Q4 C4 C14
+D5  : T  95.24c W  91.70c S   3.77c (+10.6 L  +7.4) LCB   82.83c P  1.92% WF  17.0 PSV      10 N       7  --  D5 C3 E3 C5
+P4  : T  95.16c W  91.73c S   3.59c (+10.4 L  +7.3) LCB   67.24c P  1.52% WF  12.7 PSV       7 N       5  --  P4 D3
+Q5  : T  95.05c W  91.40c S   3.67c (+10.5 L  +7.4) LCB   74.41c P  1.47% WF  12.4 PSV       7 N       5  --  Q5 D4 Q3 C13
+
+2025-09-16 09:57:35+0800: = D4
+2025-09-16 09:57:36+0800: Controller: quit
+2025-09-16 09:57:36+0800: Quit requested by controller
+2025-09-16 09:57:36+0800: = 
+2025-09-16 09:57:36+0800: GPU -1 finishing, processed 659 rows 222 batches
+2025-09-16 09:57:36+0800: All cleaned up, quitting
