@@ -121,17 +121,6 @@
       "firstMoves": [{"x":4, "y":13}, {"x":6, "y":12}]
     },
     {
-      "id": "C214",
-      "toPlay": "black",
-      "goal": "黑先，角上打吃（抢先）",
-      "setup": [
-        {"x":1,  "y":2,  "color":"white"},
-        {"x":2,  "y":2,  "color":"black"},
-        {"x":1,  "y":1,  "color":"black"}
-      ],
-      "firstMoves": [{"x":2, "y":1}]
-    },
-    {
       "id": "C217",
       "toPlay": "black",
       "goal": "黑先，读两口气（先手打吃）",
