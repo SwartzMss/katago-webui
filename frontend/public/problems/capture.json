@@ -109,18 +109,6 @@
       "firstMoves": [{"x":0,  "y":1}, {"x":1,  "y":0}]
     },
     {
-      "id": "C212",
-      "toPlay": "black",
-      "goal": "黑先，边上双打吃（任选其一）",
-      "setup": [
-        {"x":4,  "y":12, "color":"white"},
-        {"x":5,  "y":12, "color":"black"},
-        {"x":4,  "y":11, "color":"black"},
-        {"x":3,  "y":12, "color":"white"}
-      ],
-      "firstMoves": [{"x":4, "y":13}, {"x":6, "y":12}]
-    },
-    {
       "id": "C217",
       "toPlay": "black",
       "goal": "黑先，读两口气（先手打吃）",
