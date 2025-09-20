@@ -63,17 +63,6 @@
       "firstMoves": [{"x":6,  "y":5}, {"x":5,  "y":6}]
     },
     {
-      "id": "C208",
-      "toPlay": "black",
-      "goal": "黑先，二路夹击后打吃",
-      "setup": [
-        {"x":15, "y":3,  "color":"white"},
-        {"x":16, "y":3,  "color":"black"},
-        {"x":15, "y":4,  "color":"black"}
-      ],
-      "firstMoves": [{"x":15, "y":2}, {"x":14, "y":3}]
-    },
-    {
       "id": "C209",
       "toPlay": "black",
       "goal": "黑先，断点打吃（读一口气）",
