@@ -4,19 +4,5 @@
     { "key": "I", "label": "进阶" },
     { "key": "A", "label": "提升" }
   ],
-  "sets": [
-    { "setId": "capture", "title": "进攻·打吃与提子", "level": "E" },
-    { "setId": "defense", "title": "防守·补气与稳固",   "level": "E" },
-    { "setId": "eyes",    "title": "眼形入门",   "level": "E" },
-
-    { "setId": "ladder",  "title": "征子识别",   "level": "I" },
-    { "setId": "net",     "title": "枷吃与扑",   "level": "I" },
-    { "setId": "connect", "title": "接不归",     "level": "I" },
-    { "setId": "ko",      "title": "劫争入门",   "level": "I" },
-
-    { "setId": "corner",  "title": "角部生死",   "level": "A" },
-    { "setId": "endgame", "title": "官子入门",   "level": "A" },
-    { "setId": "reading", "title": "阅读训练",   "level": "A" }
-  ],
-  "default": "capture"
+  "sets": []
 }

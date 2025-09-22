@@ -387,13 +387,41 @@
     setSelect.onchange = async ()=>{ await loadSet(setSelect.value); };
 
     async function loadSet(name){
+      if(!name){
+        problems = [];
+        idx = 0;
+        goalEl.textContent = '目标：—';
+        stepProgressEl.textContent = '';
+        resetBtn.disabled = true;
+        hintBtn.disabled = true;
+        showHint = false;
+        hintBtn.classList.remove('active');
+        hintBtn.setAttribute('aria-pressed', 'false');
+        updateProgressUI();
+        drawBoard();
+        return;
+      }
       // 简单静态题库（禁用缓存，避免旧 JSON 残留）
       const url = `/problems/${name}.json?v=${Date.now()}`;
       const res = await fetch(url, { cache: 'no-store' });
       if(!res.ok){ toast('题库加载失败'); return; }
       const data = await res.json();
       problems = data.problems || [];
-      if(!problems.length){ toast('题库为空'); return; }
+      if(!problems.length){
+        toast('题库为空');
+        resetBtn.disabled = true;
+        hintBtn.disabled = true;
+        goalEl.textContent = '目标：—';
+        stepProgressEl.textContent = '';
+        showHint = false;
+        hintBtn.classList.remove('active');
+        hintBtn.setAttribute('aria-pressed', 'false');
+        updateProgressUI();
+        drawBoard();
+        return;
+      }
+      resetBtn.disabled = false;
+      hintBtn.disabled = false;
       loadProblem(0);
     }
 
@@ -408,21 +436,12 @@
       const fallbackLevels = [
         {key:'E', label:'入门'}, {key:'I', label:'进阶'}, {key:'A', label:'提升'}
       ];
-      const fallbackSets = [
-        {setId:'capture', title:'进攻·打吃与提子', level:'E'},
-        {setId:'defense', title:'防守·补气与稳固', level:'E'},
-        {setId:'eyes', title:'眼形入门', level:'E'},
-        {setId:'ladder', title:'征子识别', level:'I'},
-        {setId:'net', title:'枷吃与扑', level:'I'},
-        {setId:'connect', title:'接不归', level:'I'},
-        {setId:'ko', title:'劫争入门', level:'I'},
-        {setId:'corner', title:'角部生死', level:'A'},
-        {setId:'endgame', title:'官子入门', level:'A'},
-        {setId:'reading', title:'阅读训练', level:'A'}
-      ];
+      const fallbackSets = [];
+      const hasManifest = !!manifest;
       const levels = Array.isArray(manifest?.levels) && manifest.levels.length ? manifest.levels : fallbackLevels;
-      const sets = Array.isArray(manifest?.sets) && manifest.sets.length ? manifest.sets : fallbackSets;
-      const def = manifest?.default || sets[0]?.setId || 'capture';
+      const sets = hasManifest && Array.isArray(manifest.sets) ? manifest.sets : fallbackSets;
+      const defFromManifest = hasManifest ? manifest?.default : null;
+      const def = (defFromManifest && sets.some(s=>s.setId === defFromManifest)) ? defFromManifest : (sets[0]?.setId || null);
 
       // 构建 optgroup
       setSelect.innerHTML = '';
@@ -439,9 +458,35 @@
         if(group.children.length){ setSelect.appendChild(group); }
       }
 
+      if(!setSelect.options.length){
+        const placeholder = document.createElement('option');
+        placeholder.textContent = '暂无题集';
+        placeholder.disabled = true;
+        placeholder.selected = true;
+        setSelect.appendChild(placeholder);
+        setSelect.disabled = true;
+        problems = [];
+        idx = 0;
+        goalEl.textContent = '目标：暂无题集';
+        stepProgressEl.textContent = '';
+        resetBtn.disabled = true;
+        hintBtn.disabled = true;
+        progressEl.textContent = '—/—';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        prevBtn.classList.remove('btn-primary');
+        prevBtn.classList.add('btn-secondary');
+        showHint = false;
+        hintBtn.classList.remove('active');
+        hintBtn.setAttribute('aria-pressed', 'false');
+        drawBoard();
+        return;
+      }
+
+      setSelect.disabled = false;
       // 选择默认项并加载
-      const hasDef = Array.from(setSelect.options).some(o=>o.value===def);
-      setSelect.value = hasDef ? def : (setSelect.options[0]?.value || 'capture');
+      const hasDef = typeof def === 'string' && Array.from(setSelect.options).some(o=>o.value===def);
+      setSelect.value = hasDef ? def : (setSelect.options[0]?.value || '');
       await loadSet(setSelect.value);
     }
 
