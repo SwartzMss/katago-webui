@@ -1,0 +1,80 @@
+{
+  "setId": "defense",
+  "title": "防守·补气与稳固",
+  "problems": [
+    {
+      "id": "D101",
+      "toPlay": "black",
+      "goal": "黑先，单口气补点（避免被提）",
+      "setup": [
+        {"x":10, "y":10, "color":"black"},
+        {"x":9,  "y":10, "color":"white"},
+        {"x":11, "y":10, "color":"white"},
+        {"x":10, "y":9,  "color":"white"}
+      ],
+      "firstMoves": [{"x":10, "y":11}]
+    },
+    {
+      "id": "D102",
+      "toPlay": "black",
+      "goal": "黑先，边上单口气补点（延一手活）",
+      "setup": [
+        {"x":1,  "y":5,  "color":"black"},
+        {"x":0,  "y":5,  "color":"white"},
+        {"x":2,  "y":5,  "color":"white"},
+        {"x":1,  "y":4,  "color":"white"}
+      ],
+      "firstMoves": [{"x":1,  "y":6}]
+    },
+    {
+      "id": "D103",
+      "toPlay": "black",
+      "goal": "黑先，角上单口气补点",
+      "setup": [
+        {"x":1,  "y":1,  "color":"black"},
+        {"x":0,  "y":1,  "color":"white"},
+        {"x":1,  "y":0,  "color":"white"},
+        {"x":2,  "y":1,  "color":"white"}
+      ],
+      "firstMoves": [{"x":1,  "y":2}]
+    },
+    {
+      "id": "D104",
+      "toPlay": "black",
+      "goal": "黑先，补断点稳固（两等价点）",
+      "setup": [
+        {"x":5,  "y":5,  "color":"black"},
+        {"x":5,  "y":6,  "color":"black"},
+        {"x":4,  "y":5,  "color":"white"},
+        {"x":6,  "y":5,  "color":"white"}
+      ],
+      "firstMoves": [{"x":5,  "y":4}, {"x":5, "y":7}]
+    },
+    {
+      "id": "D105",
+      "toPlay": "black",
+      "goal": "黑先，虎口补强（避免被断）",
+      "setup": [
+        {"x":8,  "y":8,  "color":"black"},
+        {"x":9,  "y":8,  "color":"black"},
+        {"x":9,  "y":7,  "color":"white"},
+        {"x":10, "y":8,  "color":"white"}
+      ],
+      "firstMoves": [{"x":9,  "y":9}]
+    },
+    {
+      "id": "D106",
+      "toPlay": "black",
+      "goal": "黑先，向外长稳住整块（不是就地粘）",
+      "setup": [
+        {"x":12, "y":12, "color":"black"},
+        {"x":13, "y":12, "color":"white"},
+        {"x":12, "y":11, "color":"white"},
+        {"x":11, "y":12, "color":"black"},
+        {"x":11, "y":11, "color":"black"}
+      ],
+      "firstMoves": [{"x":12, "y":13}]
+    }
+  ]
+}
+

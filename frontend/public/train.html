@@ -410,7 +410,7 @@
       ];
       const fallbackSets = [
         {setId:'capture', title:'进攻·打吃与提子', level:'E'},
-        {setId:'basic', title:'防守·活形与补强', level:'E'},
+        {setId:'defense', title:'防守·补气与稳固', level:'E'},
         {setId:'eyes', title:'眼形入门', level:'E'},
         {setId:'ladder', title:'征子识别', level:'I'},
         {setId:'net', title:'枷吃与扑', level:'I'},
@@ -441,7 +441,7 @@
 
       // 选择默认项并加载
       const hasDef = Array.from(setSelect.options).some(o=>o.value===def);
-      setSelect.value = hasDef ? def : (setSelect.options[0]?.value || 'basic');
+      setSelect.value = hasDef ? def : (setSelect.options[0]?.value || 'capture');
       await loadSet(setSelect.value);
     }
 
