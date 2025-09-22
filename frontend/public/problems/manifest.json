@@ -1,8 +1,0 @@
-{
-  "levels": [
-    { "key": "E", "label": "入门" },
-    { "key": "I", "label": "进阶" },
-    { "key": "A", "label": "提升" }
-  ],
-  "sets": []
-}
