@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGF 复盘 - KataGo Web</title>
+  <style>
+    :root {
+      --bg: #F6F2E7;
+      --panel-bg: #F9F6EE;
+      --text: #3B3A36;
+      --muted: #6B6A65;
+      --border: #E4DED0;
+      --primary: #2E7D6B;
+      --accent: #B46A00;
+      --board-bg: #E6D6B5;
+      --grid: #5F5A52;
+      --star: #4C463F;
+      --panel-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+    }
+    header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+    }
+    .nav { display: flex; gap: 10px; }
+    .nav a {
+      display: inline-flex;
+      align-items: center;
+      color: var(--primary);
+      background: #fff;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 10px;
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .nav a:hover { background: #f0ede6; }
+    .nav a[aria-current="page"] {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 18px;
+      align-items: flex-start;
+      justify-content: center;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .panel-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 340px;
+      max-width: min(95vw, 340px);
+    }
+    .panel-stack .panel { width: 100%; }
+    .board-region {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      flex: 1 1 640px;
+      min-width: 0;
+    }
+    #board {
+      width: 640px;
+      height: 640px;
+      max-width: min(90vw, 640px);
+      max-height: min(90vw, 640px);
+      border: 1px solid var(--border);
+      background: var(--board-bg);
+      box-shadow: var(--panel-shadow);
+    }
+    .board-shell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 640px;
+      max-width: min(90vw, 640px);
+    }
+    .board-info {
+      width: 640px;
+      max-width: min(90vw, 640px);
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: var(--panel-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .board-info strong { font-size: 14px; }
+    .board-info .secondary { color: var(--muted); font-size: 13px; }
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--panel-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .board-side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 320px;
+      max-width: min(95vw, 320px);
+    }
+    .board-side .panel {
+      width: 100%;
+    }
+    .panel h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      transition: filter 0.15s ease, background 0.15s ease;
+    }
+    .btn:hover { filter: brightness(1.03); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-accent { background: #fff; color: var(--accent); border-color: var(--accent); }
+    .btn-accent.active { background: var(--accent); color: #fff; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .input-row label { font-weight: 600; }
+    input[type="text"], input[type="url"], input[type="number"], textarea, select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      background: #fff;
+      width: 100%;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    .tabs { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+    .tabs button {
+      border: none;
+      background: transparent;
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .tabs button.active { background: var(--primary); color: #fff; }
+    .range-row { display: flex; flex-direction: column; gap: 8px; }
+    .range-row input[type="range"] { width: 100%; }
+    .move-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(46,125,107,0.12);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 14px; }
+    dt { color: var(--muted); }
+    dd { margin: 0; }
+    .analysis-result { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .analysis-result .pv { font-family: "SFMono-Regular","Consolas","Liberation Mono",monospace; font-size: 14px; white-space: pre-wrap; }
+    .answer-config { display: none; flex-direction: column; gap: 8px; }
+    .answer-config.active { display: flex; }
+    .radio-group { display: flex; gap: 16px; }
+    .note { font-size: 13px; color: var(--muted); }
+    #toast {
+      position: fixed;
+      left: 50%;
+      top: 16%;
+      transform: translateX(-50%) scale(0.96);
+      background: rgba(60,52,40,0.92);
+      color: #FDFBF6;
+      padding: 10px 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 1000;
+      font-size: 14px;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+    @media (max-width: 1200px) {
+      main { flex-direction: column; align-items: center; }
+      .panel-stack { width: min(640px, 100%); }
+      .board-region { flex-direction: column; align-items: center; }
+      .board-side { width: min(640px, 100%); }
+    }
+    @media (max-width: 720px) {
+      #board { width: 92vw; height: 92vw; }
+      .board-info { width: 92vw; }
+      .board-side { width: 92vw; }
+      .panel-stack { width: 92vw; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast"></div>
+  <header>
+    <div>KataGo Web</div>
+    <nav class="nav">
+      <a href="/">对局</a>
+      <a href="/train.html">练习</a>
+      <a href="/review.html" aria-current="page">复盘</a>
+    </nav>
+  </header>
+  <main>
+    <aside class="panel-stack">
+      <section class="panel" id="importPanel">
+        <h2>导入 SGF</h2>
+        <div class="tabs" role="tablist">
+          <button type="button" class="active" data-mode="local" role="tab" aria-selected="true">本地文件</button>
+          <button type="button" data-mode="remote" role="tab" aria-selected="false">远程链接</button>
+        </div>
+        <div class="import-mode" id="importLocal" role="tabpanel">
+          <div class="input-row">
+            <button class="btn btn-primary" id="chooseFileBtn">选择 SGF 文件</button>
+            <span id="selectedFileName" class="muted">未选择文件</span>
+          </div>
+        </div>
+        <div class="import-mode" id="importRemote" role="tabpanel" hidden>
+          <div class="input-row">
+            <input type="url" id="remoteUrlInput" placeholder="https://example.com/game.sgf" autocomplete="off" />
+            <button class="btn" id="fetchRemoteBtn">拉取</button>
+          </div>
+          <div class="muted" id="lastRemoteHint">&nbsp;</div>
+        </div>
+        <div class="muted" id="importStatus">支持 1 MiB 以内的 SGF 文件。</div>
+        <input type="file" id="fileInput" accept=".sgf" hidden />
+      </section>
+
+      <section class="panel" id="infoPanel">
+        <h2>棋局信息</h2>
+        <div class="badge" id="sourceBadge" hidden>本地上传</div>
+        <dl>
+          <dt>黑方</dt><dd id="metaBlack">—</dd>
+          <dt>白方</dt><dd id="metaWhite">—</dd>
+          <dt>结果</dt><dd id="metaResult">—</dd>
+          <dt>规则</dt><dd id="metaRules">—</dd>
+          <dt>Komi</dt><dd id="metaKomi">—</dd>
+        </dl>
+        <div class="note" id="metaComment">无备注</div>
+      </section>
+
+      <section class="panel" id="timelinePanel">
+        <h2>手数控制</h2>
+        <div class="move-controls">
+          <button class="btn" id="jumpStart" title="开局">⏮</button>
+          <button class="btn" id="stepBack" title="上一手">◀</button>
+          <button class="btn" id="stepForward" title="下一手">▶</button>
+          <button class="btn" id="jumpEnd" title="终局">⏭</button>
+        </div>
+        <div class="range-row">
+          <input type="range" id="moveSlider" min="0" max="0" value="0" disabled />
+          <div class="muted" id="moveCounter">0 / 0</div>
+        </div>
+        <label class="input-row" style="align-items:center; gap:8px;">
+          <input type="checkbox" id="lockMoveToggle" />
+          <span>锁定当前手数用于分析与保存</span>
+        </label>
+        <div class="muted" id="lockInfo">未锁定。</div>
+      </section>
+
+    </aside>
+    <div class="board-region">
+      <div class="board-shell">
+        <canvas id="board" width="640" height="640" aria-label="围棋棋盘"></canvas>
+        <div class="board-info" id="boardStatus">
+          <div><strong id="statusSummary">请导入 SGF</strong></div>
+          <div class="secondary" id="statusDetail">—</div>
+          <div class="secondary" id="statusComment">&nbsp;</div>
+        </div>
+      </div>
+      <div class="board-side">
+        <section class="panel" id="analysisPanel">
+          <h2>AI 分析</h2>
+          <div class="input-row">
+            <label for="visitInput">访问数</label>
+            <input type="number" id="visitInput" value="400" min="50" max="5000" step="50" />
+          </div>
+          <button class="btn btn-primary" id="analyzeBtn" disabled>运行分析</button>
+          <div class="analysis-result muted" id="analysisPlaceholder">尚无分析数据。</div>
+          <div class="analysis-result" id="analysisResult" hidden>
+            <div><strong>胜率</strong>：<span id="analysisWinrate">—</span></div>
+            <div><strong>目差</strong>：<span id="analysisScore">—</span></div>
+            <div><strong>访问数</strong>：<span id="analysisVisits">—</span></div>
+            <div class="pv"><strong>建议序列</strong>：<span id="analysisPv">—</span></div>
+          </div>
+        </section>
+
+        <section class="panel" id="savePanel">
+          <h2>保存习题</h2>
+          <div>
+            <div class="radio-group">
+              <label><input type="radio" name="category" value="beginner" checked /> 入门</label>
+              <label><input type="radio" name="category" value="advanced" /> 进阶</label>
+            </div>
+          </div>
+          <div class="input-row">
+            <label for="answerSource">答案来源</label>
+            <select id="answerSource">
+              <option value="sgf_mainline">沿用 SGF 主线</option>
+              <option value="katago">采用 KataGo 建议</option>
+              <option value="manual">手动录入</option>
+            </select>
+          </div>
+          <div class="answer-config active" id="configSgf">
+            <div class="input-row">
+              <label for="sgfLength">保留步数</label>
+              <input type="number" id="sgfLength" value="2" min="1" max="30" />
+            </div>
+            <div class="note">保存时从当前手数按主线延伸指定步数，自动生成正确答案。</div>
+          </div>
+          <div class="answer-config" id="configKatago">
+            <div class="input-row">
+              <label for="katagoLength">保留 PV 步数</label>
+              <input type="number" id="katagoLength" value="4" min="1" max="30" />
+            </div>
+            <div class="note">需先运行分析；保存时使用当前缓存的 KataGo 首选序列。</div>
+          </div>
+          <div class="answer-config" id="configManual">
+            <div class="input-row">
+              <label for="manualPrimary">主解坐标</label>
+              <textarea id="manualPrimary" placeholder="示例：Q16 R17 Q15"></textarea>
+            </div>
+            <div class="input-row">
+              <label for="manualAlt">备选解（可选）</label>
+              <textarea id="manualAlt" placeholder="多组以换行分隔，坐标以空格分隔"></textarea>
+            </div>
+            <div class="note">坐标使用 SGF 格式（如 Q16），多组备选解用换行分隔。</div>
+          </div>
+          <label class="input-row" style="align-items:center; gap:8px;">
+            <input type="checkbox" id="includeRawSgf" checked />
+            <span>随题目保存原始 SGF</span>
+          </label>
+          <button class="btn btn-accent" id="saveBtn" disabled>保存到习题库</button>
+          <div class="muted" id="saveStatus">导入 SGF 后可保存题目。</div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const board = document.getElementById('board');
+    const ctx = board.getContext('2d');
+    let stones = [];
+    let lastMove = null;
+    const letters = 'ABCDEFGHJKLMNOPQRST';
+    const toastEl = document.getElementById('toast');
+
+    const state = {
+      reviewId: null,
+      boardSize: 19,
+      komi: 7.5,
+      meta: {},
+      initialSetup: { black: [], white: [], empty: [], to_play: null },
+      finalStones: { black: [], white: [] },
+      moves: [],
+      currentMoveIndex: 0,
+      analysisCache: {},
+      sourceLabel: null,
+      sourceType: null,
+      lockedMoveIndex: null,
+    };
+
+    function toast(msg, ms = 1500){
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), ms);
+    }
+
+    function resetState(){
+      state.reviewId = null;
+      state.meta = {};
+      state.initialSetup = { black: [], white: [], empty: [], to_play: null };
+      state.finalStones = { black: [], white: [] };
+      state.moves = [];
+      state.currentMoveIndex = 0;
+      state.analysisCache = {};
+      state.sourceLabel = null;
+      state.sourceType = null;
+      state.lockedMoveIndex = null;
+      stones = [];
+      lastMove = null;
+      drawBoard();
+      updateAllPanels();
+    }
+
+    function moveToCoord(mv){
+      if(!mv || mv === 'pass' || mv === 'resign') return null;
+      const colChar = mv[0].toUpperCase();
+      const col = letters.indexOf(colChar);
+      const rowNum = parseInt(mv.slice(1), 10);
+      if(col < 0 || isNaN(rowNum)) return null;
+      const y = state.boardSize - rowNum;
+      const x = col;
+      if(x < 0 || x >= state.boardSize || y < 0 || y >= state.boardSize) return null;
+      return { x, y };
+    }
+
+    function coordToString(x, y){
+      if(x < 0 || y < 0 || x >= state.boardSize || y >= state.boardSize) return '';
+      const col = letters[x];
+      const row = state.boardSize - y;
+      return col + row;
+    }
+
+    function starPoints(size){
+      if(size === 19) return [3,9,15];
+      if(size === 13) return [3,9];
+      if(size === 9) return [2,6];
+      if(size === 5) return [2];
+      return [];
+    }
+
+    function drawBoard(){
+      const size = state.boardSize;
+      ctx.clearRect(0,0,640,640);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--board-bg') || '#E6D6B5';
+      ctx.fillRect(0,0,640,640);
+      const margin = 32;
+      const gridSize = size > 1 ? (640 - margin * 2) / (size - 1) : 0;
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid') || '#5F5A52';
+      ctx.lineWidth = 1;
+      for(let i=0;i<size;i++){
+        const p = margin + i * gridSize;
+        ctx.beginPath(); ctx.moveTo(margin, p); ctx.lineTo(640 - margin, p); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(p, margin); ctx.lineTo(p, 640 - margin); ctx.stroke();
+      }
+      const star = getComputedStyle(document.documentElement).getPropertyValue('--star') || '#4C463F';
+      ctx.fillStyle = star;
+      const pts = starPoints(size);
+      for(const ix of pts){
+        for(const iy of pts){
+          const cx = margin + ix * gridSize;
+          const cy = margin + iy * gridSize;
+          ctx.beginPath();
+          ctx.arc(cx, cy, size >= 13 ? 3 : 2.2, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+      drawStones();
+      drawHighlights();
+    }
+
+    function drawStones(){
+      const margin = 32;
+      const size = state.boardSize;
+      const gridSize = size > 1 ? (640 - margin * 2) / (size - 1) : 0;
+      for(const s of stones){
+        const cx = margin + s.x * gridSize;
+        const cy = margin + s.y * gridSize;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(14, gridSize * 0.42), 0, Math.PI*2);
+        const grad = ctx.createRadialGradient(cx-6, cy-6, 2, cx, cy, Math.max(16, gridSize * 0.5));
+        if(s.color === 'black'){
+          grad.addColorStop(0, '#666');
+          grad.addColorStop(1, '#111');
+        } else {
+          grad.addColorStop(0, '#FFFFFF');
+          grad.addColorStop(1, '#E9E3D6');
+        }
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = '#00000022';
+        ctx.stroke();
+      }
+    }
+
+    function drawHighlights(){
+      if(!lastMove) return;
+      const margin = 32;
+      const size = state.boardSize;
+      const gridSize = size > 1 ? (640 - margin * 2) / (size - 1) : 0;
+      const cx = margin + lastMove.x * gridSize;
+      const cy = margin + lastMove.y * gridSize;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(20, gridSize * 0.65), 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(46,125,107,0.65)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function hasStone(x, y){
+      return stones.some(s => s.x === x && s.y === y);
+    }
+
+    function stoneColorAt(x, y){
+      const s = stones.find(st => st.x === x && st.y === y);
+      return s ? s.color : null;
+    }
+
+    function neighbors(x, y){
+      const list = [];
+      if(x > 0) list.push({x:x-1, y});
+      if(x < state.boardSize - 1) list.push({x:x+1, y});
+      if(y > 0) list.push({x, y:y-1});
+      if(y < state.boardSize - 1) list.push({x, y:y+1});
+      return list;
+    }
+
+    function groupAndLiberties(startX, startY){
+      const color = stoneColorAt(startX, startY);
+      if(!color) return { group: [], liberties: new Set() };
+      const key = (p) => p.x + ',' + p.y;
+      const seen = new Set([key({x:startX,y:startY})]);
+      const group = [{x:startX,y:startY}];
+      const liberties = new Set();
+      const queue = [{x:startX,y:startY}];
+      while(queue.length){
+        const p = queue.pop();
+        for(const nb of neighbors(p.x, p.y)){
+          const nbColor = stoneColorAt(nb.x, nb.y);
+          if(!nbColor){ liberties.add(nb.x + ',' + nb.y); continue; }
+          if(nbColor === color){
+            const k = key(nb);
+            if(!seen.has(k)){
+              seen.add(k);
+              group.push(nb);
+              queue.push(nb);
+            }
+          }
+        }
+      }
+      return { group, liberties };
+    }
+
+    function removeGroup(group){
+      const remove = new Set(group.map(p => p.x + ',' + p.y));
+      stones = stones.filter(s => !remove.has(s.x + ',' + s.y));
+    }
+
+    function playStone(color, x, y){
+      stones.push({ x, y, color });
+      const opponent = color === 'black' ? 'white' : 'black';
+      for(const nb of neighbors(x, y)){
+        if(stoneColorAt(nb.x, nb.y) === opponent){
+          const info = groupAndLiberties(nb.x, nb.y);
+          if(info.liberties.size === 0){
+            removeGroup(info.group);
+          }
+        }
+      }
+      const selfInfo = groupAndLiberties(x, y);
+      if(selfInfo.liberties.size === 0){
+        removeGroup(selfInfo.group);
+      }
+    }
+
+    function applyInitialSetup(){
+      stones = [];
+      const init = state.initialSetup || {};
+      const colors = [
+        { list: init.black || [], color: 'black' },
+        { list: init.white || [], color: 'white' },
+      ];
+      for(const entry of colors){
+        for(const mv of entry.list){
+          const pt = moveToCoord(mv);
+          if(pt && !hasStone(pt.x, pt.y)){
+            stones.push({ x: pt.x, y: pt.y, color: entry.color });
+          }
+        }
+      }
+      const emptyList = init.empty || [];
+      if(emptyList.length){
+        const remove = new Set(emptyList.map(mv => {
+          const pt = moveToCoord(mv);
+          return pt ? pt.x + ',' + pt.y : '';
+        }));
+        stones = stones.filter(s => !remove.has(s.x + ',' + s.y));
+      }
+    }
+
+    function rebuildPosition(){
+      applyInitialSetup();
+      lastMove = null;
+      const upto = Math.min(state.currentMoveIndex, state.moves.length);
+      for(let i = 0; i < upto; i++){
+        const move = state.moves[i];
+        if(!move || !move.coord) continue;
+        const pt = moveToCoord(move.coord);
+        if(!pt) continue;
+        const color = move.color === 'white' ? 'white' : 'black';
+        playStone(color, pt.x, pt.y);
+        lastMove = { x: pt.x, y: pt.y };
+      }
+      drawBoard();
+    }
+
+    function computeToPlay(moveIndex){
+      const initColor = state.initialSetup && state.initialSetup.to_play ? state.initialSetup.to_play : 'black';
+      if(moveIndex <= 0){
+        return normalizeColor(initColor);
+      }
+      const prev = state.moves[moveIndex - 1];
+      if(!prev) return normalizeColor(initColor);
+      return prev.color === 'white' ? 'black' : 'white';
+    }
+
+    function normalizeColor(color){
+      if(!color) return 'black';
+      if(typeof color === 'string') return color.toLowerCase();
+      if(color === 'Black') return 'black';
+      if(color === 'White') return 'white';
+      return 'black';
+    }
+
+    function updateStatusPanel(){
+      const summary = document.getElementById('statusSummary');
+      const detail = document.getElementById('statusDetail');
+      const comment = document.getElementById('statusComment');
+      if(!state.reviewId){
+        summary.textContent = '请导入 SGF';
+        detail.textContent = '导入后可拖动时间轴复盘，或请求 KataGo 分析。';
+        comment.innerHTML = '&nbsp;';
+        return;
+      }
+      const moveIdx = Math.min(state.currentMoveIndex, state.moves.length);
+      const total = state.moves.length;
+      const toPlay = computeToPlay(moveIdx);
+      const currentMove = moveIdx > 0 ? state.moves[moveIdx - 1] : null;
+      const coord = currentMove && currentMove.coord ? currentMove.coord.toUpperCase() : '—';
+      const colorText = currentMove ? (currentMove.color === 'white' ? '白' : '黑') : '—';
+      const commentText = currentMove && currentMove.comment ? currentMove.comment : '';
+      summary.textContent = `手数 ${moveIdx} / ${total}`;
+      detail.textContent = `上一手：${colorText} ${coord}，当前轮到 ${toPlay === 'white' ? '白' : '黑'}`;
+      comment.textContent = commentText || '无额外注释。';
+    }
+
+    function updateMetaPanel(){
+      const meta = state.meta || {};
+      document.getElementById('metaBlack').textContent = meta.black || '—';
+      document.getElementById('metaWhite').textContent = meta.white || '—';
+      document.getElementById('metaResult').textContent = meta.result || '—';
+      document.getElementById('metaRules').textContent = meta.rules || '—';
+      const komi = typeof state.komi === 'number' ? state.komi : (meta.komi ?? null);
+      document.getElementById('metaKomi').textContent = komi != null ? komi.toFixed(1).replace(/\.0$/, '') : '—';
+      const comment = meta.comment ? meta.comment.trim() : '';
+      document.getElementById('metaComment').textContent = comment || '无备注';
+      const badge = document.getElementById('sourceBadge');
+      if(state.sourceLabel){
+        badge.textContent = state.sourceLabel;
+        badge.hidden = false;
+      } else {
+        badge.hidden = true;
+      }
+    }
+
+    function updateTimelinePanel(){
+      const slider = document.getElementById('moveSlider');
+      slider.max = state.moves.length;
+      slider.value = state.currentMoveIndex;
+      slider.disabled = !state.reviewId;
+      document.getElementById('moveCounter').textContent = `${state.currentMoveIndex} / ${state.moves.length}`;
+      document.getElementById('stepBack').disabled = !state.reviewId;
+      document.getElementById('stepForward').disabled = !state.reviewId;
+      document.getElementById('jumpStart').disabled = !state.reviewId;
+      document.getElementById('jumpEnd').disabled = !state.reviewId;
+      const lockToggle = document.getElementById('lockMoveToggle');
+      const lockInfo = document.getElementById('lockInfo');
+      if(state.lockedMoveIndex != null){
+        lockToggle.checked = true;
+        lockInfo.textContent = `已锁定在 ${state.lockedMoveIndex} 手。`;
+      } else {
+        lockToggle.checked = false;
+        lockInfo.textContent = '未锁定。';
+      }
+    }
+
+    function updateAnalysisPanel(){
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      analyzeBtn.disabled = !state.reviewId;
+      const moveIdx = getTargetMoveIndex();
+      const analysis = state.analysisCache[moveIdx];
+      const placeholder = document.getElementById('analysisPlaceholder');
+      const result = document.getElementById('analysisResult');
+      if(analysis){
+        placeholder.hidden = true;
+        result.hidden = false;
+        document.getElementById('analysisWinrate').textContent = formatWinrate(analysis.winrate);
+        document.getElementById('analysisScore').textContent = formatScore(analysis.scoreLead);
+        document.getElementById('analysisVisits').textContent = analysis.visits ?? '—';
+        document.getElementById('analysisPv').textContent = (analysis.pv || []).map(m => m.toUpperCase()).join(' ');
+      } else {
+        placeholder.hidden = false;
+        result.hidden = true;
+      }
+    }
+
+    function updateSavePanel(){
+      const saveBtn = document.getElementById('saveBtn');
+      const status = document.getElementById('saveStatus');
+      if(!state.reviewId){
+        saveBtn.disabled = true;
+        status.textContent = '导入 SGF 后可保存题目。';
+        return;
+      }
+      saveBtn.disabled = false;
+      const sourceSelect = document.getElementById('answerSource');
+      refreshAnswerConfig(sourceSelect.value);
+    }
+
+    function updateAllPanels(){
+      updateStatusPanel();
+      updateMetaPanel();
+      updateTimelinePanel();
+      updateAnalysisPanel();
+      updateSavePanel();
+    }
+
+    function getTargetMoveIndex(){
+      if(state.lockedMoveIndex != null) return state.lockedMoveIndex;
+      return state.currentMoveIndex;
+    }
+
+    function formatWinrate(value){
+      if(value == null) return '—';
+      const pct = value * 100;
+      return `${pct.toFixed(1).replace(/\.0$/, '')}%`;
+    }
+
+    function formatScore(value){
+      if(value == null) return '—';
+      const text = value.toFixed(1).replace(/\.0$/, '');
+      return `${text} 目`;
+    }
+
+    function onMoveChanged(newIndex){
+      state.currentMoveIndex = Math.max(0, Math.min(newIndex, state.moves.length));
+      if(state.lockedMoveIndex != null){
+        state.lockedMoveIndex = Math.max(0, Math.min(state.lockedMoveIndex, state.moves.length));
+      }
+      rebuildPosition();
+      updateAllPanels();
+    }
+
+    function onImportResponse(payload, opts){
+      state.reviewId = payload.reviewId;
+      state.boardSize = payload.boardSize || 19;
+      state.komi = payload.komi;
+      state.meta = payload.meta || {};
+      state.initialSetup = payload.initialSetup || { black: [], white: [], empty: [], to_play: null };
+      state.finalStones = payload.finalStones || { black: [], white: [] };
+      state.moves = Array.isArray(payload.moves) ? payload.moves : [];
+      state.currentMoveIndex = state.moves.length;
+      state.analysisCache = {};
+      state.lockedMoveIndex = null;
+      state.sourceLabel = opts && opts.label ? opts.label : null;
+      state.sourceType = opts && opts.type ? opts.type : null;
+      if(opts && opts.remoteUrl){
+        localStorage.setItem('katago_review_last_remote', opts.remoteUrl);
+        restoreLastRemote();
+      }
+      stones = [];
+      lastMove = null;
+      rebuildPosition();
+      updateAllPanels();
+      toast('导入成功');
+    }
+
+    const tabButtons = Array.from(document.querySelectorAll('#importPanel .tabs button'));
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+        switchImportMode(mode);
+      });
+    });
+
+    function switchImportMode(mode){
+      tabButtons.forEach(btn => {
+        const active = btn.getAttribute('data-mode') === mode;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      document.getElementById('importLocal').hidden = mode !== 'local';
+      document.getElementById('importRemote').hidden = mode !== 'remote';
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    document.getElementById('chooseFileBtn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+      if(!fileInput.files || !fileInput.files[0]) return;
+      const file = fileInput.files[0];
+      document.getElementById('selectedFileName').textContent = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+      await uploadLocalFile(file);
+    });
+
+    async function uploadLocalFile(file){
+      if(!file){ toast('请选择文件'); return; }
+      setImportStatus('上传中…');
+      try{
+        const fd = new FormData();
+        fd.append('sgf_file', file, file.name);
+        const res = await fetch('/api/review/import', { method: 'POST', body: fd });
+        if(!res.ok){
+          const err = await safeParseJson(res);
+          handleImportError(err && err.error ? err.error : res.statusText);
+          return;
+        }
+        const data = await res.json();
+        onImportResponse(data, { label: `本地：${file.name}`, type: 'local' });
+        setImportStatus(`已导入 ${file.name}`);
+      } catch (err){
+        handleImportError(err && err.message ? err.message : '导入失败');
+      }
+    }
+
+    document.getElementById('fetchRemoteBtn').addEventListener('click', async () => {
+      const url = document.getElementById('remoteUrlInput').value.trim();
+      if(!url){ toast('请输入 https 链接'); return; }
+      await fetchRemoteSgf(url);
+    });
+
+    async function fetchRemoteSgf(url){
+      setImportStatus('下载中…');
+      try{
+        const res = await fetch('/api/review/import', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ sourceUrl: url }),
+        });
+        if(!res.ok){
+          const err = await safeParseJson(res);
+          handleImportError(err && err.error ? err.error : res.statusText);
+          return;
+        }
+        const data = await res.json();
+        onImportResponse(data, { label: `远程：${url}`, type: 'remote', remoteUrl: url });
+        setImportStatus(`已导入 ${url}`);
+        document.getElementById('remoteUrlInput').value = '';
+      } catch (err){
+        handleImportError(err && err.message ? err.message : '下载失败');
+      }
+    }
+
+    async function safeParseJson(res){
+      try{ return await res.json(); }
+      catch(_){ return null; }
+    }
+
+    function setImportStatus(text){
+      document.getElementById('importStatus').textContent = text;
+    }
+
+    function handleImportError(code){
+      const message = translateImportError(code);
+      setImportStatus(message);
+      toast(message, 2000);
+    }
+
+    function translateImportError(code){
+      const map = {
+        SGF_FILE_REQUIRED: '请选择要导入的 SGF 文件。',
+        SGF_TOO_LARGE: '文件超过 1 MiB 限制。',
+        SGF_NOT_UTF8: 'SGF 不是 UTF-8 编码。',
+        SGF_PARSE_FAILED: '无法解析 SGF，请检查文件格式。',
+        SOURCE_URL_REQUIRED: '请输入有效的 https 链接。',
+        INVALID_MULTIPART: '上传失败，表单数据异常。',
+        INVALID_FILE_FIELD: '读取 SGF 文件失败。',
+        INVALID_JSON: '请求格式不正确。',
+        REMOTE_FETCH_FAILED: '远程文件下载失败。',
+        SGF_TOO_LARGE_REMOTE: '远程文件超过大小限制。',
+      };
+      if(code && map[code]) return map[code];
+      if(typeof code === 'string') return code;
+      return '导入失败，请稍后重试。';
+    }
+
+    document.getElementById('moveSlider').addEventListener('input', (e) => {
+      const value = Number(e.target.value);
+      onMoveChanged(value);
+    });
+
+    document.getElementById('stepBack').addEventListener('click', () => {
+      onMoveChanged(state.currentMoveIndex - 1);
+    });
+    document.getElementById('stepForward').addEventListener('click', () => {
+      onMoveChanged(state.currentMoveIndex + 1);
+    });
+    document.getElementById('jumpStart').addEventListener('click', () => {
+      onMoveChanged(0);
+    });
+    document.getElementById('jumpEnd').addEventListener('click', () => {
+      onMoveChanged(state.moves.length);
+    });
+
+    document.getElementById('lockMoveToggle').addEventListener('change', (e) => {
+      if(!state.reviewId){
+        e.target.checked = false;
+        toast('请先导入 SGF');
+        return;
+      }
+      if(e.target.checked){
+        state.lockedMoveIndex = state.currentMoveIndex;
+      } else {
+        state.lockedMoveIndex = null;
+      }
+      updateTimelinePanel();
+      updateAnalysisPanel();
+      updateSavePanel();
+    });
+
+    document.getElementById('answerSource').addEventListener('change', (e) => {
+      refreshAnswerConfig(e.target.value);
+    });
+
+    function refreshAnswerConfig(mode){
+      const configs = {
+        sgf_mainline: document.getElementById('configSgf'),
+        katago: document.getElementById('configKatago'),
+        manual: document.getElementById('configManual'),
+      };
+      Object.keys(configs).forEach(key => {
+        configs[key].classList.toggle('active', key === mode);
+      });
+      const status = document.getElementById('saveStatus');
+      if(!state.reviewId){
+        status.textContent = '导入 SGF 后可保存题目。';
+        return;
+      }
+      const idx = getTargetMoveIndex();
+      if(mode === 'katago'){
+        if(!state.analysisCache[idx]){
+          status.textContent = '需先对该手数运行分析。';
+        } else {
+          status.textContent = `准备保存第 ${idx} 手局面。`;
+        }
+      } else {
+        status.textContent = `准备保存第 ${idx} 手局面。`;
+      }
+    }
+
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+      if(!state.reviewId){ toast('请先导入 SGF'); return; }
+      const visits = Number(document.getElementById('visitInput').value) || 400;
+      const moveIndex = getTargetMoveIndex();
+      document.getElementById('analyzeBtn').disabled = true;
+      document.getElementById('analyzeBtn').textContent = '计算中…';
+      try{
+        const res = await fetch('/api/review/analyze', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ reviewId: state.reviewId, moveIndex, maxVisits: visits }),
+        });
+        document.getElementById('analyzeBtn').textContent = '运行分析';
+        document.getElementById('analyzeBtn').disabled = false;
+        if(!res.ok){
+          const err = await safeParseJson(res);
+          const message = err && err.error ? translateAnalyzeError(err.error) : '分析失败';
+          toast(message, 2000);
+          return;
+        }
+        const data = await res.json();
+        state.analysisCache[moveIndex] = data.analysis;
+        updateAnalysisPanel();
+        updateSavePanel();
+        toast('分析完成');
+      } catch (err){
+        document.getElementById('analyzeBtn').textContent = '运行分析';
+        document.getElementById('analyzeBtn').disabled = false;
+        toast('分析失败，请稍后重试。', 2000);
+      }
+    });
+
+    function translateAnalyzeError(code){
+      const map = {
+        REVIEW_NOT_FOUND: '复盘会话已过期，请重新导入。',
+        REVIEW_NOT_OWNED: '会话已失效，请重新导入。',
+        MOVE_INDEX_OUT_OF_RANGE: '手数超出范围。',
+        ENGINE_UNAVAILABLE: 'KataGo 暂不可用。',
+        FAILED_TO_PREPARE_POSITION: '无法加载局面。',
+        ENGINE_ANALYZE_FAILED: '分析命令失败。',
+      };
+      return map[code] || code || '分析失败';
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      if(!state.reviewId){ toast('请先导入 SGF'); return; }
+      const category = (document.querySelector('input[name="category"]:checked') || {}).value || 'beginner';
+      const source = document.getElementById('answerSource').value;
+      const moveIndex = getTargetMoveIndex();
+      const includeRaw = document.getElementById('includeRawSgf').checked;
+      const payload = {
+        reviewId: state.reviewId,
+        moveIndex,
+        category,
+        includeRawSgf: includeRaw,
+      };
+      const answer = buildAnswerPayload(source, moveIndex);
+      if(answer === null){
+        return;
+      }
+      payload.answer = answer;
+      try{
+        setSaveStatus('保存中…');
+        document.getElementById('saveBtn').disabled = true;
+        const res = await fetch('/api/exercise/save', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        document.getElementById('saveBtn').disabled = false;
+        if(!res.ok){
+          const err = await safeParseJson(res);
+          setSaveStatus(err && err.error ? translateSaveError(err.error) : '保存失败');
+          toast('保存失败', 2000);
+          return;
+        }
+        const data = await res.json();
+        const id = data.exerciseId || '未知 ID';
+        setSaveStatus(`保存成功：${id}`);
+        toast('题目已保存');
+      } catch (err){
+        document.getElementById('saveBtn').disabled = false;
+        setSaveStatus('保存失败，请稍后重试。');
+        toast('保存失败，请稍后重试。', 2000);
+      }
+    });
+
+    function buildAnswerPayload(source, moveIndex){
+      if(source === 'sgf_mainline'){
+        const len = Number(document.getElementById('sgfLength').value) || 1;
+        return { source: 'sgf_mainline', length: Math.max(1, len) };
+      }
+      if(source === 'katago'){
+        const analysis = state.analysisCache[moveIndex];
+        if(!analysis){
+          toast('请先对该手数运行分析');
+          return null;
+        }
+        const len = Math.max(1, Number(document.getElementById('katagoLength').value) || analysis.pv.length || 1);
+        const pv = analysis.pv.slice(0, len);
+        return {
+          source: 'katago',
+          pv,
+          winrate: analysis.winrate,
+          scoreLead: analysis.scoreLead,
+          visits: analysis.visits,
+        };
+      }
+      if(source === 'manual'){
+        const text = document.getElementById('manualPrimary').value.trim();
+        if(!text){
+          toast('请输入主解坐标');
+          return null;
+        }
+        const primary = text.split(/\s+/).map(s => s.toUpperCase()).filter(Boolean);
+        const altText = document.getElementById('manualAlt').value.trim();
+        const alternatives = [];
+        if(altText){
+          const lines = altText.split(/\n+/);
+          for(const line of lines){
+            const moves = line.trim().split(/\s+/).map(s => s.toUpperCase()).filter(Boolean);
+            if(moves.length){ alternatives.push({ moves }); }
+          }
+        }
+        return { source: 'manual', primary, alternatives };
+      }
+      return null;
+    }
+
+    function translateSaveError(code){
+      const map = {
+        REVIEW_NOT_FOUND: '复盘会话不存在或已过期。',
+        REVIEW_NOT_OWNED: '复盘会话不属于当前浏览器。',
+        MOVE_INDEX_OUT_OF_RANGE: '手数超出范围。',
+        CATEGORY_INVALID: '分类仅支持入门或进阶。',
+        ANSWER_MISSING: '请提供答案。',
+        ANSWER_TOO_SHORT: '答案序列为空。',
+        ANSWER_COORD_INVALID: '答案坐标无效。',
+      };
+      return map[code] || code || '保存失败';
+    }
+
+    function setSaveStatus(text){
+      document.getElementById('saveStatus').textContent = text;
+    }
+
+    function restoreLastRemote(){
+      const last = localStorage.getItem('katago_review_last_remote');
+      const hint = document.getElementById('lastRemoteHint');
+      if(last){
+        hint.innerHTML = `最近：<button type="button" class="btn btn-accent" id="reuseRemoteBtn">${last}</button>`;
+        setTimeout(() => {
+          const btn = document.getElementById('reuseRemoteBtn');
+          if(btn){
+            btn.addEventListener('click', () => {
+              document.getElementById('remoteUrlInput').value = last;
+              fetchRemoteSgf(last);
+            });
+          }
+        }, 0);
+      } else {
+        hint.textContent = '暂无历史链接。';
+      }
+    }
+
+    drawBoard();
+    updateAllPanels();
+    restoreLastRemote();
+
+    window.addEventListener('beforeunload', () => {
+      // 可以在此处扩展告知后端回收复盘状态
+    });
+  </script>
+</body>
+</html>
