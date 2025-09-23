@@ -26,6 +26,69 @@ use tower_http::{
 };
 use tracing_appender::rolling;
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
+
+fn cleanup_old_logs(log_dir: &Path, file_prefix: &str, max_files: usize) -> anyhow::Result<()> {
+    if max_files == 0 {
+        return Ok(());
+    }
+
+    let rotated_prefix = format!("{file_prefix}.");
+    let mut rotated_files: Vec<(String, std::path::PathBuf)> = std::fs::read_dir(log_dir)
+        .with_context(|| format!("reading log directory {}", log_dir.display()))?
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let metadata = entry.metadata().ok()?;
+            if !metadata.is_file() {
+                return None;
+            }
+            let name = entry.file_name();
+            let name = name.to_str()?.to_owned();
+            if name == file_prefix {
+                return None;
+            }
+            if name.starts_with(&rotated_prefix) {
+                Some((name, entry.path()))
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if rotated_files.len() <= max_files {
+        return Ok(());
+    }
+
+    rotated_files.sort_by(|a, b| a.0.cmp(&b.0));
+    let to_remove = rotated_files.len().saturating_sub(max_files);
+    for (_, path) in rotated_files.into_iter().take(to_remove) {
+        std::fs::remove_file(&path)
+            .with_context(|| format!("removing old log file {}", path.display()))?;
+    }
+
+    Ok(())
+}
+
+fn clear_directory(dir: &Path) -> anyhow::Result<()> {
+    if !dir.exists() {
+        return Ok(());
+    }
+
+    for entry in
+        std::fs::read_dir(dir).with_context(|| format!("reading directory {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() {
+            std::fs::remove_file(&path)
+                .with_context(|| format!("removing file {}", path.display()))?;
+        } else if path.is_dir() {
+            std::fs::remove_dir_all(&path)
+                .with_context(|| format!("removing directory {}", path.display()))?;
+        }
+    }
+
+    Ok(())
+}
 // 从环境变量加载配置（仅 backend/.env）；不覆盖已有进程变量
 fn load_env() {
     // 明确加载 backend 目录下的 .env，避免因工作目录不同而读取到仓库根 .env
@@ -76,12 +139,18 @@ struct GameState {
 #[tokio::main]
 async fn main() {
     // init tracing: console + 每日滚动文件日志
-    let log_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("logs");
+    let project_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("backend dir should have parent project root");
+    let log_dir = project_root.join("logs");
     let _ = std::fs::create_dir_all(&log_dir);
     let file_appender = rolling::daily(&log_dir, "backend.log");
     // ensure gtp logs directory exists for KataGo's own logging
-    let gtp_log_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("gtp_logs");
+    let gtp_log_dir = project_root.join("gtp_logs");
     let _ = std::fs::create_dir_all(&gtp_log_dir);
+    if let Err(err) = clear_directory(&gtp_log_dir) {
+        tracing::warn!(?err, "failed to clear previous gtp logs");
+    }
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::registry()
         .with(fmt::layer().compact())
@@ -89,6 +158,14 @@ async fn main() {
         .init();
 
     load_env();
+
+    let max_log_files: usize = std::env::var("BACKEND_LOG_MAX_FILES")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(3);
+    if let Err(err) = cleanup_old_logs(&log_dir, "backend.log", max_log_files) {
+        tracing::warn!(?err, "failed to enforce backend log retention");
+    }
 
     let port: u16 = std::env::var("PORT")
         .ok()
@@ -138,10 +215,7 @@ async fn main() {
         .route("/api/review/analyze", post(review_analyze))
         .route("/api/exercise/save", post(exercise_save));
 
-    let static_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap() // project root
-        .join("frontend/public");
+    let static_dir = project_root.join("frontend/public");
 
     let app = Router::new()
         .nest("/", api)
