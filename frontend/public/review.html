@@ -418,9 +418,21 @@
 
     function moveToCoord(mv){
       if(!mv || mv === 'pass' || mv === 'resign') return null;
-      const colChar = mv[0].toUpperCase();
+      const str = String(mv).trim();
+      if(!str) return null;
+
+      const sgf = str.toLowerCase();
+      if(sgf.length === 2 && /^[a-z]{2}$/.test(sgf)){
+        const base = 'a'.charCodeAt(0);
+        const x = sgf.charCodeAt(0) - base;
+        const y = sgf.charCodeAt(1) - base;
+        if(x < 0 || y < 0 || x >= state.boardSize || y >= state.boardSize) return null;
+        return { x, y };
+      }
+
+      const colChar = str[0].toUpperCase();
       const col = letters.indexOf(colChar);
-      const rowNum = parseInt(mv.slice(1), 10);
+      const rowNum = parseInt(str.slice(1), 10);
       if(col < 0 || isNaN(rowNum)) return null;
       const y = state.boardSize - rowNum;
       const x = col;
@@ -428,9 +440,14 @@
       return { x, y };
     }
 
-    function coordToString(x, y){
+    function coordToString(x, y, format = 'human'){
       if(x < 0 || y < 0 || x >= state.boardSize || y >= state.boardSize) return '';
+      if(format === 'sgf'){
+        const base = 'a'.charCodeAt(0);
+        return String.fromCharCode(base + x) + String.fromCharCode(base + y);
+      }
       const col = letters[x];
+      if(!col) return '';
       const row = state.boardSize - y;
       return col + row;
     }
